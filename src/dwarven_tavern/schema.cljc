@@ -43,3 +43,4 @@
 (def validate-join-msg (validate +join-msg+))
 (def validate-start-msg (validate +start-msg+))
 (def validate-subscribe-msg (validate +subscribe-msg+))
+(def validate-move-msg (validate +move-msg+))
