@@ -1,4 +1,4 @@
-(ns dwarven-tavern.server.schema
+(ns dwarven-tavern.schema
   (:require [bouncer.core :as b]
             [bouncer.validators :as v]))
 
