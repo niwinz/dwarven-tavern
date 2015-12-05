@@ -21,7 +21,7 @@
   []
   (let [out (a/chan 8)
         mix (a/mix out)]
-    {:players []
+    {:players {}
      :socket out
      :mix mix
      :status :incomplete
@@ -50,11 +50,22 @@
   [context {:keys [data]}]
   )
 
-;; (defmethod handler [:subscribe :game]
-;;   [context frame]
-;;   (letfn [(on-socket [{:keys [in out ctrl]}]
-;;             )]
-;;     (let [mesage (:data frame)]
-;;       (swap! state/transition [:join-room message]
-;;     (if (
-;;     (pc/socket context on-socket)))
+(defmethod handler [:subscribe :game]
+  [context frame]
+  (letfn [(on-socket [{:keys [in out ctrl]}]
+            )
+          (joined? [message]
+            (let [room (:room message)
+                  player (:player message)]
+              (contains? (get-in @state [:rooms room :players] player))))]
+    (let [message (:data frame)
+          valid? (schema/valid? schema/+join-msg+)]
+      (if-not (valid? message)
+        (pc/frame :error {:message "invalid data"})
+        (do
+          (swap! state state/transition [:join-room message])
+          (if (joined? (:player message))
+            (pc/socket context on-socket)
+            (pc/frame :error {:message "not joined"})))))))
+
+

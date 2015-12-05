@@ -6,13 +6,9 @@
 ;; Schemas
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def +player+
-  {:id [v/required v/string]
-   :name [v/required v/string]})
-
 (def +join-msg+
   {:room [v/required keyword?]
-   :player +player+})
+   :player [v/required keyword?]})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public Api
@@ -25,6 +21,3 @@
      (b/valid? data schema)))
   ([schema data]
    (b/valid? data schema)))
-
-
-
