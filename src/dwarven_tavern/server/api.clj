@@ -12,12 +12,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOTE: move to other ns when this section grows
 
-(def +room-statuses+ #{:incomplete
-                       :ready
+(def +room-statuses+ #{:pending
                        :playing
                        :closing})
 
-(defn initialize-room
+(defn mk-room
   []
   (let [in (a/chan)
         mult (a/mult in)]
@@ -25,7 +24,7 @@
            {:players {}
             :in in
             :mult mult
-            :status :incomplete})))
+            :status :pending})))
 
 (defn- choice-team
   [room playerid]
@@ -58,7 +57,7 @@
 
 (defmethod state/transition :creat-room
   [state [_ roomname]]
-  (let [room (game/mk-room)]
+  (let [room (mk-room)]
     (update-in state [:rooms] assoc roomname room)))
 
 (defmethod state/transition :join
