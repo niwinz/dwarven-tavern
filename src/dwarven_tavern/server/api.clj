@@ -2,6 +2,7 @@
   (:require [clojure.core.async :as a]
             [catacumba.core :as ct]
             [catacumba.handlers.postal :as pc]
+            [cats.labs.lens :as l]
             [dwarven-tavern.server.game :as game]
             [dwarven-tavern.server.state :as state]
             [dwarven-tavern.schema :as schema]))
@@ -45,7 +46,7 @@
     (pc/frame :error errors)
     (let [roomid (:room data)]
       (state/transact! [:game/start roomid])
-      (let [room (state/get-room-by-id roomid)]
+      (let [room (l/focus-atom (l/in [:rooms roomid]) state/db)]
         (game/start room)
         (pc/frame {:ok true})))))
 

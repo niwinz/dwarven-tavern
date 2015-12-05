@@ -1,5 +1,6 @@
 (ns dwarven-tavern.server.game
   (:require [clojure.core.async :as a]
+            [cats.labs.lens :as l]
             [catacumba.handlers.postal :as pc]
             [dwarven-tavern.server.state :as state]))
 
@@ -10,17 +11,22 @@
 (def ^:private +round-time+ 5000)
 
 (defn- broadcast-start
-  [{:keys [bus id] :as room}]
-  (let [msg {:room id :event :start}]
+  [room]
+  (let [roomid (:id @room)
+        bus (:bus @room)
+        msg {:room roomid :event :start}]
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 
 (defn- start-round
-  [{:keys [id bus]} round]
-  (let [state (state/transact! [:game/set-round id round])
+  [room round]
+  (let [roomid (:id @room)
+        bus (:bus @room)
         msg {:event :round-start
              :round round
              :time +round-time+}]
+    (swap! room assoc :round round)
+    ;; (state/transact! [:game/set-round roomid round])
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 

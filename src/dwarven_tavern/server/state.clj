@@ -29,7 +29,7 @@
   ([state id] (get-in state [:rooms id])))
 
 (defn get-room-player-by-id
-  ([roomid id] (get-room-by-id @db roomid id))
+  ([roomid id] (get-room-player-by-id @db roomid id))
   ([state roomid id] (get-in state [:rooms roomid :players id])))
 
 (defn get-room-list
@@ -103,7 +103,7 @@
 (defmethod transition :room/join
   [state [_ {:keys [room player] :as msg}]]
   (if-let [room' (get-room-by-id state room)]
-    (if-let [player' (get-room-player-by-id room player)]
+    (if-let [player' (get-room-player-by-id state room player)]
       state
       (transition state [:room/assoc-player room player]))
     (-> state
