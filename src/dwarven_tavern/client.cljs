@@ -14,6 +14,16 @@
 
 (defonce db (atom st/initial-state))
 
+(defonce router
+  (bidi/start-router!
+   ["/" {"home"  :home
+         "rooms" :rooms
+         ["game/" :id] :game}]
+   {:on-navigate (fn [location]
+                   (println location)
+                   (swap! db assoc :location (:handler location)))
+    :default-location {:handler :home}}))
+
 (defmethod st/transition :default
   [state _]
   state)
@@ -56,12 +66,14 @@
 (defn render!
   [element db]
   (rum/mount (v/root {:state db
-                      :signal (partial st/transact! db)})
+                      :signal (partial st/transact! db)
+                      :router router})
              element))
 
 (defn start-router!
   [db]
   (bidi/start-router! ["/" {"home" :home
+                            "rooms" :rooms
                             ["game/" :id] :game}]
                       {:on-navigate (fn [location]
                                       (swap! db assoc :location (:handler location)))

@@ -5,15 +5,15 @@
 (def initial-state
   {:player :dialelo
    :location :home
-   :room-list [{:id "Room 1"
+   :room-list [{:id "Room1"
                 :players 2
                 :max 4
                 :status :pending}
-               {:id "Room 2"
+               {:id "Room2"
                 :players 2
                 :max 10
                 :status :pending}
-               {:id "Room 3"
+               {:id "Room3"
                 :players 4
                 :max 4
                 :status :pending}]

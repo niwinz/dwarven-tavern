@@ -169,3 +169,47 @@ html, body {
     font-family: "Monospace";
     color: #666;
 }
+
+.home .image-wrapper {
+    overflow: hidden;
+    width: 480px;
+    position: relative;
+}
+
+.home .image-wrapper #logo {
+    width: 1385px;
+}
+
+.home .form-wrapper {
+    position: relative;
+    margin-top: 100px;
+}
+
+.home .form-wrapper input {
+    position: absolute;
+    top: 284px;
+    height: 40px;
+    width: 459px;
+    padding: 10px;
+    font-size: 2em;
+    font-family: Dwarvesc;
+    padding-top: 0;
+    text-align: center;
+    border: 2px solid black;
+    box-shadow: inset 0 0 8px #aaa;
+
+}
+
+.home .join-game {
+    border: 2px solid #FFEA85;
+    padding: 0.2em 1em;
+    text-decoration: none;
+    border-radius: 10px;
+    color: #FFEA85;
+    background: #802030;
+    font-size: 3em;
+    margin-top: 1em;
+    position: absolute;
+    top: 317px;
+    left: 80px;
+}

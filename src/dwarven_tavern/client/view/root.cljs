@@ -1,6 +1,7 @@
 (ns dwarven-tavern.client.view.root
   (:require [sablono.core :as html :refer-macros [html]]
             [rum.core :as rum]
+            [bidi.router :as bidi]
             [dwarven-tavern.client.view.util :as util]))
 
 (enable-console-print!)
@@ -94,7 +95,7 @@
       (for [row (range 0 height)]
         [:tr {:style
               (condp = row
-                0      {:background-color "rgba(255, 0, 0, 0.22)"}
+                0            {:background-color "rgba(255, 0, 0, 0.22)"}
                 (- height 1) {:background-color "rgba(255, 255, 0, 0.22)"}
                 {})}
          (for [column (range 0 width)]
@@ -132,7 +133,8 @@
 
 (defn render-room-list
   [own]
-  (let [{:keys [room-list]} (-> own :rum/props :state deref)]
+  (let [router (-> own :rum/props :router)
+        {:keys [room-list]} (-> own :rum/props :state deref)]
     [:.container.room-list
      [:img#logo {:src "/images/tavern-logo.png"}]
      [:.room-list-container
@@ -146,15 +148,29 @@
            [:span.room-element-name id]
            [:span.room-element-room (str "(" players "/" max ")")]
            (when (= status :pending)
-             [:a.join {:href "#"} "Join"])]])]]]))
+             [:a.join {:href (str "#/game/" id)
+                       :on-click #(bidi/set-location! router {:handler :game
+                                                              :route-params {:id id}})} "Join"])]])]]]))
+
+(defn render-home
+  [own]
+  (let [router (-> own :rum/props :router)]
+      [:.container.home
+       [:div.form-wrapper
+        [:div.image-wrapper
+         [:img#logo {:src "/images/tavern-logo.png"}]]
+        [:input {:auto-focus "autofocus" :placeholder "What's yar name?"}]
+        [:a.join-game {:href "#/rooms"
+                       :on-click #(bidi/set-location! router {:handler :rooms})} "To Arms!"]]]))
 
 (defn render-root
   [own]
   (let [{:keys [location]} (-> own :rum/props :state deref)]
     (html
      (condp = location
-       :home (render-room-list own)
-       :game (render-game own)
+       :home  (render-home own)
+       :rooms (render-room-list own)
+       :game  (render-game own)
        [:div (str "Not found: " location)]))))
 
 (def root
