@@ -37,7 +37,7 @@
   ([state]
    (letfn [(extract [[key value]]
              {:id key
-              :num (+ (count (:team1 value)) (count (:team2 value)))
+              :players (+ (count (:team1 value)) (count (:team2 value)))
               :status (:status value)})]
      (mapv extract (:rooms state)))))
 
