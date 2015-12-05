@@ -141,6 +141,7 @@
       [:div.room-list-header
        [:h2.room-list-title "Available games"]
        [:a.new-game {:href "#"} "New game!"]]
+      [:a.help {:href "#/help"} "How to play?"]
       [:ul
        (for [{:keys [id players max status]} room-list]
          [:li
@@ -150,7 +151,8 @@
            (when (= status :pending)
              [:a.join {:href (str "#/game/" id)
                        :on-click #(bidi/set-location! router {:handler :game
-                                                              :route-params {:id id}})} "Join"])]])]]]))
+                                                              :route-params {:id id}})} "Join"])]])]
+      ]]))
 
 (defn render-home
   [own]
