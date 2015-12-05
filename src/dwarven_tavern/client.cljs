@@ -37,7 +37,7 @@
 
 (defmethod st/transition :room-list
   [state [_ rooms]]
-  (assoc state :rooms rooms))
+  (assoc state :room-list rooms))
 
 (defn fetch-rooms!
   [db]
