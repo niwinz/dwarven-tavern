@@ -3,7 +3,8 @@
             [promesa.core :as prom]))
 
 (def initial-state
-  {:location :home
+  {:player :dialelo
+   :location :home
    :room-list [{:id "Room 1"
                 :players 2
                 :max 4
@@ -20,14 +21,14 @@
                   :height 10
                   :total-time 10
                   :time-progress 9
+                  :players {:dialelo {:pos [1 2]
+                                      :dir :south}
+                            :alotor {:pos [3 4]
+                                     :dir :north}}
                   :team1 {:score 1
-                          :members [{:id :dialelo
-                                     :pos [1 2]
-                                     :dir :south}]}
+                          :members [:dialelo]}
                   :team2 {:score 2
-                          :members [{:id :alotor
-                                     :pos [3 4]
-                                     :dir :north}]}
+                          :members [:alotor]}
                   :barrel {:pos [5 5]
                            :dir :south}}})
 

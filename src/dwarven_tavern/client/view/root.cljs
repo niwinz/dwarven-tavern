@@ -85,8 +85,8 @@
   [own]
   (let [{:keys [width height team1 team2 barrel] } (->  own :rum/props :state deref :current-game)
         signal (get-in own [:rum/props :signal])
-        {[posx-team1  posy-team1] :pos dir-team1 :dir} (first (:members team1))
-        {[posx-team2  posy-team2] :pos dir-team2 :dir} (first (:members team2))
+        {[posx-team1  posy-team1] :pos dir-team1 :dir} (first (:players team1))
+        {[posx-team2  posy-team2] :pos dir-team2 :dir} (first (:players team2))
         {[posx-barrel posy-barrel] :pos dir-barrel :dir} barrel]
     [:table.grid
      {:tab-index 0
@@ -121,12 +121,12 @@
       [:.time-counter time-progress]]
      [:.scoreboard
       [:.team.team1
-       (for [{id :id} members-t1]
+       (for [id members-t1]
          [:span.name (name id)])
        [:span.score score-t1]]
       [:.vs "VS"]
       [:.team.team2
-       (for [{id :id} members-t2]
+       (for [id members-t2]
          [:span.name (name id)])
        [:span.score score-t2]]]
      (game-grid own)]))
