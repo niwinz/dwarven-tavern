@@ -19,6 +19,10 @@
   [room]
   (postal/subscribe client :game {:player :me :room room}))
 
+(defn get-room-list
+  []
+  (prom/then (postal/query client :rooms) #(:data %)))
+
 (defn play-in-room
   [room]
   (rx/flat-map

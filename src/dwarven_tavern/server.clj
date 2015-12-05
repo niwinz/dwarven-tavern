@@ -54,3 +54,7 @@
   [& args]
   (component/start (system)))
 
+(comment
+  (def s (system))
+  (component/start s))
+

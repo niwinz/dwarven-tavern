@@ -1,5 +1,6 @@
 (ns dwarven-tavern.client
   (:require [goog.dom :as gdom]
+            [cats.core :as m]
             [rum.core :as rum]
             [promesa.core :as prom]
             [beicon.core :as rx]
@@ -34,7 +35,30 @@
   ;; TODO
   state)
 
-(let [state (util/focus db)]
-  (rum/mount (v/root {:state state
+(defmethod st/transition :room-list
+  [state [_ rooms]]
+  (assoc state :rooms rooms))
+
+(defn fetch-rooms!
+  [db]
+  (m/mlet [rooms (p/get-room-list)]
+    (st/transact! db [:room-list rooms])))
+
+(defn render!
+  [element db]
+  (rum/mount (v/root {:state db
                       :signal (partial st/transact! db)})
-             (gdom/getElement "app")))
+             element))
+
+(defn init
+  [db]
+  (fetch-rooms! db)
+  (render! (gdom/getElement "app") db))
+
+(init db)
+
+(comment
+  (in-ns 'dwarven-tavern.client)
+  (fetch-rooms! db)
+  (:rooms @db)
+  )

@@ -1,5 +1,6 @@
 (ns dwarven-tavern.client.state
-  (:require [beicon.core :as rx]))
+  (:require [beicon.core :as rx]
+            [promesa.core :as prom]))
 
 (def initial-state
   {:width 10
@@ -22,8 +23,14 @@
 (defn transact!
   [db ev]
   (let [tx (transition @db ev)]
-    (if (rx/observable? tx)
+    (cond
+      (rx/observable? tx)
       (rx/on-value tx #(transact! db %))
+
+      (prom/promise? tx)
+      (prom/then tx #(transact! db %))
+
+      :else
       (reset! db tx))))
 
 (defn move
