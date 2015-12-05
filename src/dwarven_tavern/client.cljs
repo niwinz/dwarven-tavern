@@ -11,13 +11,18 @@
 
 (defonce db (atom {:width 10
                    :height 10
+                   :total-time 10
+                   :time-progress 9
                    :team1 [{:id :dialelo
                             :pos [1 2]
-                            :dir :south}]
+                            :dir :south
+                            :score 1}]
                    :team2 [{:id :alotor
                             :pos [3 4]
-                            :dir :north}]
-                   :barrel {:pos [5 5]}}))
+                            :dir :north
+                            :score 2}]
+                   :barrel {:pos [5 5]
+                            :dir :north}}))
 
 (defmulti transition (fn [state [ev]] ev))
 

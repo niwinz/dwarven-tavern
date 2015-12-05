@@ -14,7 +14,7 @@
    :east  [{ :x 0  :y 64 :width 33 :height 32}
            { :x 33 :y 64 :width 33 :height 32}
            { :x 66 :y 64 :width 33 :height 32}]
-   :south [{ :x 0  :y 0  :width 33 :height 32}
+   :south [{ :x 0  :y 0  :width 33 :height 33}
            { :x 33 :y 0  :width 33 :height 32}
            { :x 66 :y 0  :width 33 :height 32}]
    :west  [{ :x 0  :y 96 :width 33 :height 32}
@@ -54,9 +54,9 @@
 (defn game-grid
   [own]
   (let [{:keys [width height team1 team2 barrel] } (->  own :rum/props :state deref)
-        {[posx-team1  posy-team1] :pos dir-team1 :dir} (first team1)
-        {[posx-team2  posy-team2] :pos dir-team2 :dir} (first team2)
-        {[posx-barrel posy-barrel] :pos} barrel]
+        {[posx-team1  posy-team1]  :pos dir-team1  :dir} (first team1)
+        {[posx-team2  posy-team2]  :pos dir-team2  :dir} (first team2)
+        {[posx-barrel posy-barrel] :pos dir-barrel :dir} barrel]
     [:table.grid
      [:tbody
       (for [row (range 0 height)]
@@ -64,7 +64,7 @@
          (for [column (range 0 width)]
            [:td
             (when (and (= row posy-barrel) (= column posx-barrel))
-              (render-barrel :north))
+              (render-barrel dir-barrel))
             (when (and (= row posy-team1) (= column posx-team1))
               (render-dwarf :team1 dir-team1 (mod (rum/react heartbeat-atom) 3)))
             (when (and (= row posy-team2) (= column posx-team2))
@@ -74,10 +74,21 @@
 
 (defn application
   [own]
-  (html
-   [:.container
-    [:img#logo {:src "/images/tavern-logo.png"}]
-    (game-grid own)]))
+  (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref)
+        {score-t1 :score} (first team1)
+        {score-t2 :score} (first team2)]
+    (html
+     [:.container
+      [:img#logo {:src "/images/tavern-logo.png"}]
+      [:.turnprogress
+       [:span.time-label "Turn time"]
+       [:.time-slider [:.progress {:style {"width" (str (* 100 (/ time-progress total-time)) "%")}}]]
+       [:.time-counter time-progress]]
+      [:.scoreboard
+       [:.team.team1 [:span.name "Dialelo"] [:span.score score-t1]]
+       [:.vs "VS"]
+       [:.team.team2 [:span.name "Niwinz"] [:span.score score-t2]]]
+      (game-grid own)])))
 
 (def root
   (util/component
