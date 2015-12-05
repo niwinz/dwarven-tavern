@@ -17,11 +17,11 @@
   (case team
     1 {:id id :pos [(rand-int +default-room-width+)
                     (rand-int (quot +default-room-height+ 2))]
-       :dir :south}
+       :team 1 :dir :south}
     2 {:id id :pos [(rand-int +default-room-width+)
                     (+ (rand-int (quot +default-room-height+ 2))
                        (quot +default-room-height+ 2))]
-       :dir :north}))
+       :team 2 :dir :north}))
 
 (comment
   {:rooms
