@@ -1,16 +1,27 @@
-(ns dwarven-tavern.server.game)
+(ns dwarven-tavern.server.game
+  (:require [clojure.core.async :as a]))
 
 (def ^:static +default-room-width+ 10)
 (def ^:static +default-room-height+ 10)
 
+(def +room-statuses+ #{:pending
+                       :playing
+                       :closing})
+
 (defn mk-room
   []
-  {:width +default-room-width+
-   :height +default-room-height+
-   :team1 #{}
-   :team2 #{}
-   :barrel {:pos [(quot +default-room-width+ 2)
-                  (quot +default-room-height+ 2)]}})
+  (let [in (a/chan)
+        mult (a/mult in)]
+    {:width +default-room-width+
+     :height +default-room-height+
+     :status :pending
+     :players {}
+     :in in
+     :mult mult
+     :team1 #{}
+     :team2 #{}
+     :barrel {:pos [(quot +default-room-width+ 2)
+                    (quot +default-room-height+ 2)]}}))
 
 (defn mk-player
   [id team]

@@ -11,20 +11,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOTE: move to other ns when this section grows
 
-(def +room-statuses+ #{:pending
-                       :playing
-                       :closing})
-
-(defn mk-room
-  []
-  (let [in (a/chan)
-        mult (a/mult in)]
-    (merge (game/mk-room)
-           {:players {}
-            :in in
-            :mult mult
-            :status :pending})))
-
 (defn- choice-team
   [room playerid]
   (let [team1 (:team1 room)
@@ -56,7 +42,7 @@
 
 (defmethod state/transition :creat-room
   [state [_ roomname]]
-  (let [room (mk-room)]
+  (let [room (game/mk-room)]
     (update-in state [:rooms] assoc roomname room)))
 
 (defmethod state/transition :join
