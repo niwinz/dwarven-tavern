@@ -41,9 +41,9 @@
         (update-in [:rooms room :players] assoc player player'))))
 
 (defmethod state/transition :create-room
-  [state [_ roomname]]
-  (let [room (game/mk-room)]
-    (update-in state [:rooms] assoc roomname room)))
+  [state [_ roomid]]
+  (let [room (game/mk-room roomid)]
+    (update-in state [:rooms] assoc roomid room)))
 
 (defmethod state/transition :join
   [state [_ {:keys [room player] :as msg}]]
@@ -54,6 +54,13 @@
     (-> state
         (state/transition [:create-room room])
         (state/transition [:assoc-player room player]))))
+
+(defmethod state/transition :start-game
+  [state [_ roomid]]
+  (let [state (update-in state [:rooms roomid] assoc :status :playing)
+        room (get-in state [:rooms roomid])]
+    (game/start room)
+    state))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
@@ -85,8 +92,9 @@
 (defmethod handler [:novelty :start]
   [context {:keys [data]}]
   (if (schema/valid? schema/+start-msg+ data)
-    (let [roomid (:room data)]
-      (start-game roomid)
+    (let [roomid (:room data)
+          room (get-in @state [:rooms roomid])]
+      (swap! state state/transition [:start-game roomid])
       (pc/frame {:ok true}))
     (pc/frame :error {:message "invalid message"})))
 
@@ -107,23 +115,3 @@
           room (get-in @state [:rooms roomid])]
       (-> (assoc context ::room room)
           (pc/socket on-subscribe)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Game Logic
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn broadcast-start
-  [room]
-  (let [ch (:in room)
-        msg {:room (:id room)
-             :event :start}]
-    (a/go
-      (a/>! ch (pc/frame :message msg)))))
-
-;; (defn start-game
-;;   [roomid]
-;;   (let [room (get-in @state [:rooms roomid])]
-;;     (a/go
-;;       (<! (wait-start room))
-;;       (<! (broadcast-start room))
-;;   )
