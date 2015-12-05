@@ -45,10 +45,10 @@
   (update state :rooms (fnil merge {}) room))
 
 (rx/subscribe
-   (p/join-room :foo)
-   #(println :joined-room %)
-   #(println :failed-to-join %)
-   #(println :fin))
+  (p/play-in-room :foo)
+  #(println :joined-room %)
+  #(println :failed-to-join %)
+  #(println :fin))
 
 (let [state (util/focus db)]
   (rum/mount (v/root {:state state

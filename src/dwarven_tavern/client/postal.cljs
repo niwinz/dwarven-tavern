@@ -11,34 +11,21 @@
   (rx/create (fn [sink]
                 (prom/branch p sink #(sink (js/Error. %))))))
 
-(defn- join-room->event
-  [response]
-  [:join-room response])
-
 (defn join-room
   [room]
-  (-> (postal/novelty client :join {:player :me
-                                    :room room})
-      (prom/then join-room->event)
-      (promise->observable)))
+  (postal/novelty client :join {:player :me :room room}))
 
-(comment
-  (rx/on-value (promise->observable (prom/resolved 42))
-               #(println :value %))
+(defn start-game
+  [room]
+  (postal/novelty client :start {:player :me :room room}))
 
-  (rx/on-error (promise->observable (prom/rejected :nope))
-               #(println :error %))
+(defn subscribe-to-room
+  [room]
+  (postal/subscribe client :game {:player :me :room room}))
 
-  (rx/subscribe
-   (join-room :foo)
-   #(println :joined-room %)
-   #(println :failed-to-join %)
-   #(println :fin))
-
-  (rx/subscribe
-   (m/mlet [[_ room] (join-room "room")]
-    (subscribe-to-room room))
-   #(println :sub-room %)
-   #(println :failed-to-subroom %)
-   #(println :fin))
-  )
+(defn play-in-room
+  [room]
+  (rx/flat-map
+   #(subscribe-to-room :foo)
+   (promise->observable
+    (prom/then (join-room :foo) #(start-game :foo)))))
