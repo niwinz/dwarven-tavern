@@ -44,11 +44,11 @@
   [context {:keys [data]}]
   (if-let [errors (schema/validate-start-msg data)]
     (pc/frame :error errors)
-    (let [roomid (:room data)]
-      (state/transact! [:game/start roomid])
-      (let [room (l/focus-atom (l/in [:rooms roomid]) state/db)]
-        (game/start room)
-        (pc/frame {:ok true})))))
+    (let [roomid (:room data)
+          state (state/transact! [:game/mark-as-started roomid])
+          room (state/get-room-by-id state roomid)]
+      (game/start (:bus room) roomid)
+      (pc/frame {:ok true}))))
 
 (defmethod handler [:novelty :movement]
   [context {:keys [data]}]

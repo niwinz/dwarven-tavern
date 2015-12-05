@@ -110,12 +110,16 @@
         (transition [:room/create room])
         (transition [:room/assoc-player room player]))))
 
-(defmethod transition :game/start
+(defmethod transition :game/mark-as-started
   [state [_ roomid]]
   (update-in state [:rooms roomid]
              merge
              {:status :playing
               :start-time (System/nanoTime)}))
+
+(defmethod transition :game/update-round
+  [state [_ roomid round]]
+  (update-in state [:rooms roomid] assoc :round round))
 
 (defmethod transition :game/move
   [state [_ data]]
