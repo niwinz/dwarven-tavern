@@ -7,8 +7,8 @@
   []
   {:width +default-room-width+
    :height +default-room-height+
-   :team1 []
-   :team2 []
+   :team1 #{}
+   :team2 #{}
    :barrel {:pos [(quot +default-room-width+ 2)
                   (quot +default-room-height+ 2)]}})
 
