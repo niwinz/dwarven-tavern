@@ -74,9 +74,10 @@
 (defmethod handler [:novelty :join]
   [context {:keys [data]}]
   (if (schema/valid? schema/+join-msg+ data)
-    (do
-      (swap! state state/transition [:join data])
-      (pc/frame {:ok true}))
+    (let [roomid (:room data)
+          state (swap! state state/transition [:join data])
+          room (get-in state [:rooms roomid])]
+      (pc/frame {:room (select-keys room [:width :height :players :team1 :team2 :barrel])}))
     (pc/frame :error {:message "invalid message"})))
 
 (declare start-game)
