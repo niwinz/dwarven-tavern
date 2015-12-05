@@ -1,5 +1,6 @@
 (ns dwarven-tavern.client.view.root
   (:require [sablono.core :as html :refer-macros [html]]
+            [rum.core :as rum]
             [dwarven-tavern.client.view.util :as util]))
 
 (def sprites {:team1  "url(/images/team1.png)"
@@ -27,8 +28,12 @@
    :west  [{ :x 0  :y 0 :width 32 :height 32}]})
 
 
+(defonce heartbeat-atom (atom 0))
+(defonce interval-timer
+  (js/setInterval (fn [] (swap! heartbeat-atom inc)) 200))
+
+
 (defn render-barrel [direction]
-  (println "Render barrel")
   (let [sprite-url (:barrel sprites)
         sprite (-> barrel-animation direction first)
         {:keys [x y width height]} sprite]
@@ -52,7 +57,6 @@
         {[posx-team1  posy-team1] :pos dir-team1 :dir} (first team1)
         {[posx-team2  posy-team2] :pos dir-team2 :dir} (first team2)
         {[posx-barrel posy-barrel] :pos} barrel]
-    (println posx-barrel posy-barrel)
     [:table.grid
      [:tbody
       (for [row (range 0 height)]
@@ -62,9 +66,9 @@
             (when (and (= row posy-barrel) (= column posx-barrel))
               (render-barrel :north))
             (when (and (= row posy-team1) (= column posx-team1))
-              (render-dwarf :team1 dir-team1 0))
+              (render-dwarf :team1 dir-team1 (mod (rum/react heartbeat-atom) 3)))
             (when (and (= row posy-team2) (= column posx-team2))
-              (render-dwarf :team2 dir-team2 0))
+              (render-dwarf :team2 dir-team2 (mod (rum/react heartbeat-atom) 3)))
             ])])]]))
 
 
@@ -79,7 +83,7 @@
   (util/component
    {:render application
     :name "root"
-    :mixins [util/cursored]}))
+    :mixins [util/cursored rum/reactive]}))
 
 
 
