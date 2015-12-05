@@ -1,4 +1,4 @@
-(ns dwarven-tavern.game)
+(ns dwarven-tavern.server.game)
 
 (def ^:static +default-room-width+ 10)
 (def ^:static +default-room-height+ 10)
@@ -16,7 +16,7 @@
   [id team]
   (case team
     :team1 {:id id :pos [(rand-int +default-room-width+)
-                    (rand-int (quot +default-room-height+ 2))]
+                         (rand-int (quot +default-room-height+ 2))]
             :team team :dir :south}
     :team2 {:id id :pos [(rand-int +default-room-width+)
                          (+ (rand-int (quot +default-room-height+ 2))
@@ -35,4 +35,3 @@
               :pos [3 4]
               :dir :south}]
      :barrel {:pos [5 5]}}}})
-
