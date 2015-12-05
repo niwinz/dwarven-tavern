@@ -17,7 +17,8 @@
                 :players 4
                 :max 4
                 :joinable true}]
-   :current-game {:width 10
+   :current-game {:room "Room 1"
+                  :width 10
                   :height 10
                   :total-time 10
                   :time-progress 9
