@@ -14,31 +14,32 @@
 
 (defonce db (atom st/initial-state))
 
+(defmethod st/transition :default
+  [state _]
+  state)
+
 (defmethod st/transition :join-room
   [state [_ room-id]]
-  (assoc state room-id {}))
-
-(defmethod st/transition :create-room
-  [state [_ name]]
-  (rx/from-coll [[:new-room {:width 10
-                             :height 10
-                             :team1 []
-                             :team2 []
-                             :barrel {:pos [5 5]}}]]))
+  (rx/map (p/play-in-room room-id)
+          (fn [msg]
+            ;; TODO
+            [:noop])))
 
 (defmethod st/transition :new-room
   [state [_ room]]
+  ;; TODO: tell the server
   (update state :rooms (fnil merge {}) room))
-
-
-(defmethod st/transition :move
-  [state [_ {:keys [room direction]}]]
-  ;; TODO
-  state)
 
 (defmethod st/transition :room-list
   [state [_ rooms]]
   (assoc state :room-list rooms))
+
+(defmethod st/transition :move
+  [state [_ {:keys [room direction]}]]
+  (let [player (:player state)]
+    (prom/then (p/move player room direction)
+               (fn [response]
+                 [:noop]))))
 
 (defn fetch-rooms!
   [db]
