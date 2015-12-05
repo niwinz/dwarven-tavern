@@ -26,6 +26,10 @@
 (defmulti handler
   (comp (juxt :type :dest) second vector))
 
+(defmethod handler [:query :rooms]
+  [context {:keys [data]}]
+  (pc/frame (state/get-room-list)))
+
 (defmethod handler [:novelty :join]
   [context {:keys [data]}]
   (if-let [errors (schema/validate-join-msg data)]

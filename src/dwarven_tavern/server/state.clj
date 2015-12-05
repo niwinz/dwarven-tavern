@@ -32,6 +32,13 @@
   ([roomid id] (get-room-by-id @db roomid id))
   ([state roomid id] (get-in state [:rooms roomid :players id])))
 
+(defn get-room-list
+  ([] (get-room-list @db))
+  ([state]
+   (letfn [(extract [[key value]]
+             [key (+ (count (:team1 value)) (count (:team2 value)))])]
+     (mapv extract (:rooms state)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Transitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
