@@ -30,7 +30,7 @@
 
 
 (defmethod st/transition :move
-  [state [_ {:keys [player team room direction]}]]
+  [state [_ {:keys [room direction]}]]
   ;; TODO
   state)
 

@@ -3,6 +3,8 @@
             [rum.core :as rum]
             [dwarven-tavern.client.view.util :as util]))
 
+(enable-console-print!)
+
 (def sprites {:team1  "url(/images/team1.png)"
               :team2  "url(/images/team2.png)"
               :barrel "url(/images/barrel.png)"})
@@ -51,13 +53,43 @@
                             :height (str height "px")
                             :background-position (str x "px " y "px")}}]))
 
+(def north-keys? #{87 38})
+(def south-keys? #{83 40})
+(def west-keys? #{65 37})
+(def east-keys? #{68 39})
+
+(defn movement
+  [signal room]
+  (fn [ev]
+    (.preventDefault ev)
+    (let [key (.-keyCode ev)]
+      (cond
+        (north-keys? key)
+        (signal [:move {:room room
+                        :direction :north}])
+
+        (south-keys? key)
+        (signal [:move {:room room
+                        :direction :south}])
+
+        (west-keys? key)
+        (signal [:move {:room room
+                        :direction :west}])
+
+        (east-keys? key)
+        (signal [:move {:room room
+                        :direction :east}])))))
+
 (defn game-grid
   [own]
   (let [{:keys [width height team1 team2 barrel] } (->  own :rum/props :state deref)
+        signal (get-in own [:rum/props :signal])
         {[posx-team1  posy-team1] :pos dir-team1 :dir} (first (:members team1))
         {[posx-team2  posy-team2] :pos dir-team2 :dir} (first (:members team2))
         {[posx-barrel posy-barrel] :pos dir-barrel :dir} barrel]
     [:table.grid
+     {:tab-index 0
+      :on-key-down (movement signal :foo)} ;; TODO: pass actual room instead of `:foo`
      [:tbody
       (for [row (range 0 height)]
         [:tr
@@ -68,8 +100,7 @@
             (when (and (= row posy-team1) (= column posx-team1))
               (render-dwarf :team1 dir-team1 (mod (rum/react heartbeat-atom) 3)))
             (when (and (= row posy-team2) (= column posx-team2))
-              (render-dwarf :team2 dir-team2 (mod (rum/react heartbeat-atom) 3)))
-            ])])]]))
+              (render-dwarf :team2 dir-team2 (mod (rum/react heartbeat-atom) 3)))])])]]))
 
 
 (defn application
