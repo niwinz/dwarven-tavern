@@ -30,6 +30,7 @@
 
 (defn valid?
   "Check if the data matches the schema."
+  {:deprecated true}
   ([schema] #(valid? schema %))
   ([schema data] (b/valid? data schema)))
 
