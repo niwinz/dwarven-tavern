@@ -2,6 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [catacumba.core :as ct]
             [catacumba.components :as ctc]
+            [catacumba.handlers.misc :refer [cors]]
             [catacumba.handlers.postal :as pc]
             [dwarven-tavern.server.api :as api])
   (:gen-class))
@@ -13,7 +14,10 @@
 (defrecord App [server]
   component/Lifecycle
   (start [this]
-    (let [routes [[:any (ctc/extra-data {::app this})]
+    (let [routes [[:any (cors {:origin "*"
+                               :allow-methods ["PUT"]
+                               :allow-headers ["Content-Type"]})]
+                  [:any (ctc/extra-data {::app this})]
                   [:any "api" (pc/router api/handler)]
                   [:assets "" {:dir "public"
                                :indexes ["index.html"]}]]]
@@ -49,3 +53,4 @@
   "The main entry point to your application."
   [& args]
   (component/start (system)))
+

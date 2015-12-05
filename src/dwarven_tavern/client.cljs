@@ -1,8 +1,10 @@
 (ns dwarven-tavern.client
   (:require [goog.dom :as gdom]
             [rum.core :as rum]
+            [promesa.core :as prom]
             [beicon.core :as rx]
             [dwarven-tavern.client.view.root :as v]
+            [dwarven-tavern.client.postal :as p]
             [dwarven-tavern.client.view.util :as util]))
 
 (enable-console-print!)
@@ -42,8 +44,11 @@
   [state [_ room]]
   (update state :rooms (fnil merge {}) room))
 
-#_(transact! db [:join-room "foo"])
-#_(transact! db [:create-room "foobar"])
+(rx/subscribe
+   (p/join-room :foo)
+   #(println :joined-room %)
+   #(println :failed-to-join %)
+   #(println :fin))
 
 (let [state (util/focus db)]
   (rum/mount (v/root {:state state
