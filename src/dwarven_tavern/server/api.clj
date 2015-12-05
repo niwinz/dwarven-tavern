@@ -71,6 +71,10 @@
   (let [room (get-in state [:rooms roomid :players])]
     (contains? room playerid)))
 
+(defn- strip-room
+  [room]
+  (select-keys room [:width :height :players :team1 :team2 :barrel]))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Postal Api
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -80,21 +84,27 @@
 
 (defmethod handler [:novelty :join]
   [context {:keys [data]}]
-  (if (schema/valid? schema/+join-msg+ data)
+  (if-let [errors (schema/validate-join-msg data)]
+    (pc/frame :error errors)
     (let [roomid (:room data)
           state (swap! state state/transition [:join data])
           room (get-in state [:rooms roomid])]
-      (pc/frame {:room (select-keys room [:width :height :players :team1 :team2 :barrel])}))
-    (pc/frame :error {:message "invalid message"})))
+      (pc/frame {:room (strip-room room)}))))
 
 (defmethod handler [:novelty :start]
   [context {:keys [data]}]
-  (if (schema/valid? schema/+start-msg+ data)
+  (if-let [errors (schema/validate-start-msg data)]
+    (pc/frame :error errors)
     (let [roomid (:room data)
           room (get-in @state [:rooms roomid])]
       (swap! state state/transition [:start-game roomid])
-      (pc/frame {:ok true}))
-    (pc/frame :error {:message "invalid message"})))
+      (pc/frame {:ok true}))))
+
+;; (defmethod handler [:novelty :movement]
+;;   [context {:keys [data]}]
+;;   (if-not (schema/valid? schema/+move-msg+ data)
+;;     (pc/frame :error {:message "Invalid message"})
+
 
 (defn on-subscribe
   [{:keys [out ctrl] :as context}]
@@ -113,8 +123,8 @@
 
 (defmethod handler [:subscribe :game]
   [context {:keys [data] :as frame}]
-  (if-not (schema/valid? schema/+subscribe-msg+ data)
-    (pc/frame :error {:message "invalid message"})
+  (if-let [errors (schema/validate-subscribe-msg data)]
+    (pc/frame :error errors)
     (let [roomid (:room data)
           room (get-in @state [:rooms roomid])]
       (-> (assoc context ::room room)
