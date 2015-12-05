@@ -3,8 +3,7 @@
             [rum.core :as rum]
             [beicon.core :as rx]
             [dwarven-tavern.client.view.root :as v]
-            [dwarven-tavern.client.view.util :as util]
-            [dwarven-tavern.common.state :as st]))
+            [dwarven-tavern.client.view.util :as util]))
 
 (enable-console-print!)
 
@@ -18,18 +17,20 @@
                             :dir :south}]
                    :barrel {:pos [5 5]}}))
 
+(defmulti transition (fn [state [ev]] ev))
+
 (defn transact!
   [db ev]
-  (let [tx (st/transition @db ev)]
+  (let [tx (transition @db ev)]
     (if (rx/observable? tx)
       (rx/on-value tx #(transact! db %))
       (reset! db tx))))
 
-(defmethod st/transition :join-room
+(defmethod transition :join-room
   [state [_ room-id]]
   (assoc state room-id {}))
 
-(defmethod st/transition :create-room
+(defmethod transition :create-room
   [state [_ name]]
   (rx/from-coll [[:new-room {:width 10
                              :height 10
@@ -37,7 +38,7 @@
                              :team2 []
                              :barrel {:pos [5 5]}}]]))
 
-(defmethod st/transition :new-room
+(defmethod transition :new-room
   [state [_ room]]
   (update state :rooms (fnil merge {}) room))
 
