@@ -93,7 +93,11 @@
       :on-key-down (movement signal :foo)} ;; TODO: pass actual room instead of `:foo`
      [:tbody
       (for [row (range 0 height)]
-        [:tr
+        [:tr {:style
+              (condp = row
+                0      {:background-color "rgba(255, 0, 0, 0.22)"}
+                (- height 1) {:background-color "rgba(255, 255, 0, 0.22)"}
+                {})}
          (for [column (range 0 width)]
            [:td
             (when (and (= row posy-barrel) (= column posx-barrel))
