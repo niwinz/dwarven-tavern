@@ -16,7 +16,7 @@
                             :dir :south}]
                    :team2 [{:id :alotor
                             :pos [3 4]
-                            :dir :south}]
+                            :dir :north}]
                    :barrel {:pos [5 5]}}))
 
 (defmulti transition (fn [state [ev]] ev))
