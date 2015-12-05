@@ -36,7 +36,6 @@
       (empty? team2) :team2
       (contains? team1 playerid) :team1
       (contains? team2 playerid) :team2
-
       (> (count team1) (count team2)) :team2
       (> (count team2) (count team1)) :team1
       :else :team1)))
