@@ -19,23 +19,30 @@
   state)
 
 (defmethod st/transition :join-room
-  [state [_ room-id]]
-  (rx/map (p/play-in-room room-id)
+  [{:keys [player]} room]
+  (rx/map (p/play-in-room player room)
           (fn [msg]
-            ;; TODO
+            ;; TODO: process incoming messages
             [:noop])))
 
+(defmethod st/transition :start-game
+  [_ room]
+  (prom/then (p/start-game room)
+             (fn [game]
+               ;; TODO: assoc current game
+               [:noop])))
+
 (defmethod st/transition :new-room
-  [state [_ room]]
+  [state room]
   ;; TODO: tell the server
   (update state :rooms (fnil merge {}) room))
 
 (defmethod st/transition :room-list
-  [state [_ rooms]]
+  [state rooms]
   (assoc state :room-list rooms))
 
 (defmethod st/transition :move
-  [state [_ {:keys [room direction]}]]
+  [state {:keys [room direction]}]
   (let [player (:player state)]
     (prom/then (p/move player room direction)
                (fn [response]

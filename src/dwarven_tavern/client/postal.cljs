@@ -12,22 +12,23 @@
   (prom/then (postal/query client :rooms) #(:data %)))
 
 (defn join-room
-  [room]
-  (postal/novelty client :join {:player :me :room room}))
+  [player room]
+  (postal/novelty client :join {:player player
+                                :room room}))
 
 (defn start-game
   [room]
-  (postal/novelty client :start {:player :me :room room}))
+  (postal/novelty client :start {:room room}))
 
 (defn subscribe-to-room
   [room]
-  (postal/subscribe client :game {:player :me :room room}))
+  (postal/subscribe client :game {:room room}))
 
 (defn play-in-room
-  [room]
+  [player room]
   (rx/flat-map
    #(subscribe-to-room room)
-   (from-promise (join-room room))))
+   (from-promise (join-room player room))))
 
 (defn move
   [player room direction]
