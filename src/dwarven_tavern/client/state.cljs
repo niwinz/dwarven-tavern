@@ -8,15 +8,15 @@
    :room-list [{:id "Room 1"
                 :players 2
                 :max 4
-                :joinable true}
+                :status :pending}
                {:id "Room 2"
                 :players 2
                 :max 10
-                :joinable true}
+                :status :pending}
                {:id "Room 3"
                 :players 4
                 :max 4
-                :joinable true}]
+                :status :pending}]
    :current-game {:room "Room 1"
                   :width 10
                   :height 10

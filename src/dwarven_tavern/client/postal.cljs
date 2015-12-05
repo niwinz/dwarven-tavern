@@ -7,6 +7,10 @@
 
 (def client (postal/client "http://localhost:5050/api"))
 
+(defn get-room-list
+  []
+  (prom/then (postal/query client :rooms) #(:data %)))
+
 (defn join-room
   [room]
   (postal/novelty client :join {:player :me :room room}))
@@ -19,12 +23,16 @@
   [room]
   (postal/subscribe client :game {:player :me :room room}))
 
-(defn get-room-list
-  []
-  (prom/then (postal/query client :rooms) #(:data %)))
-
 (defn play-in-room
   [room]
   (rx/flat-map
    #(subscribe-to-room room)
    (from-promise (join-room room))))
+
+(defn move
+  [player room direction]
+  (postal/novelty client :movement {:player player
+                                    :room room
+                                    :dir direction}))
+
+

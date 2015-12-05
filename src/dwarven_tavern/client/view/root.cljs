@@ -1,8 +1,7 @@
 (ns dwarven-tavern.client.view.root
   (:require [sablono.core :as html :refer-macros [html]]
             [rum.core :as rum]
-            [dwarven-tavern.client.view.util :as util]
-            ))
+            [dwarven-tavern.client.view.util :as util]))
 
 (enable-console-print!)
 
@@ -141,12 +140,13 @@
        [:h2.room-list-title "Available games"]
        [:a.new-game {:href "#"} "New game!"]]
       [:ul
-       (for [{:keys [id players max joinable]} room-list]
+       (for [{:keys [id players max status]} room-list]
          [:li
           [:div.room-element
            [:span.room-element-name id]
            [:span.room-element-room (str "(" players "/" max ")")]
-           [:a.join {:href "#"} "Join"]]])]]]))
+           (when (= status :pending)
+             [:a.join {:href "#"} "Join"])]])]]]))
 
 (defn render-root
   [own]
