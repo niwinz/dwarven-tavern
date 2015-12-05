@@ -63,3 +63,11 @@
   (fetch-rooms! db)
   (:rooms @db)
   )
+
+
+(bidi/start-router! ["/" {"home" :home
+                          ["game/" :id] :game}]
+                    {:on-navigate (fn [location]
+                                    (println location)
+                                    (swap! db assoc :location (:handler location)))
+                     :default-location {:handler :home}})

@@ -16,20 +16,20 @@
                 :players 4
                 :max 4
                 :joinable true}]
-   :current-game{:width 10
-                 :height 10
-                 :total-time 10
-                 :time-progress 9
-                 :team1 {:score 1
-                         :members [{:id :dialelo
-                                    :pos [1 2]
-                                    :dir :south}]}
-                 :team2 {:score 2
-                         :members [{:id :alotor
-                                    :pos [3 4]
-                                    :dir :north}]}
-                 :barrel {:pos [5 5]
-                          :dir :south}}})
+   :current-game {:width 10
+                  :height 10
+                  :total-time 10
+                  :time-progress 9
+                  :team1 {:score 1
+                          :members [{:id :dialelo
+                                     :pos [1 2]
+                                     :dir :south}]}
+                  :team2 {:score 2
+                          :members [{:id :alotor
+                                     :pos [3 4]
+                                     :dir :north}]}
+                  :barrel {:pos [5 5]
+                           :dir :south}}})
 
 (defmulti transition (fn [state [ev]] ev))
 

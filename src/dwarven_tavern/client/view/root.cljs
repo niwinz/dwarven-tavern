@@ -107,8 +107,8 @@
 (defn render-game
   [own]
   (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref :current-game)
-        {score-t1 :score} team1
-        {score-t2 :score} team2]
+        {score-t1 :score members-t1 :members} team1
+        {score-t2 :score members-t2 :members} team2]
     [:.container.game
      [:img#logo {:src "/images/tavern-logo.png"}]
      [:.turnprogress
@@ -116,9 +116,15 @@
       [:.time-slider [:.progress {:style {"width" (str (* 100 (/ time-progress total-time)) "%")}}]]
       [:.time-counter time-progress]]
      [:.scoreboard
-      [:.team.team1 [:span.name "Dialelo"] [:span.score score-t1]]
+      [:.team.team1
+       (for [{id :id} members-t1]
+         [:span.name (name id)])
+       [:span.score score-t1]]
       [:.vs "VS"]
-      [:.team.team2 [:span.name "Niwinz"] [:span.score score-t2]]]
+      [:.team.team2
+       (for [{id :id} members-t2]
+         [:span.name (name id)])
+       [:span.score score-t2]]]
      (game-grid own)]))
 
 (defn render-room-list
