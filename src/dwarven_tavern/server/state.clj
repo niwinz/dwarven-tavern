@@ -116,7 +116,7 @@
   [state [_ roomid]]
   (update-in state [:rooms roomid]
              merge
-             {:status :playing
+             {:status :started
               :start-time (System/nanoTime)}))
 
 (defmethod transition :game/update-round
