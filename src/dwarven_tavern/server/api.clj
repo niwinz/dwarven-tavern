@@ -2,8 +2,8 @@
   (:require [clojure.core.async :as a]
             [catacumba.core :as ct]
             [catacumba.handlers.postal :as pc]
+            [dwarven-tavern.server.game :as game]
             [dwarven-tavern.state :as state]
-            [dwarven-tavern.game :as game]
             [dwarven-tavern.schema :as schema]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -103,28 +103,40 @@
       (pc/frame {:ok true}))
     (pc/frame :error {:message "invalid message"})))
 
+(defn on-subscribe
+  [{:keys [in out ctrl] :as context}]
+  (let [room (::room context)
+        ch  (a/tap (:mult room) (a/chan))]
+    (a/go-loop []
+      (a/<! ch)
+      (a/<! (a/timeout 1000))
+      (recur))))
+
 (defmethod handler [:subscribe :game]
-  [context frame]
-  (letfn [(on-socket [{:keys [in out ctrl]}]
-            )
-          (joined? [message]
-            (let [room (:room message)
-                  player (:player message)]
-              (contains? (get-in @state [:rooms room :players] player))))]
-    (let [message (:data frame)
-          valid? (schema/valid? schema/+join-msg+)]
-      (if-not (valid? message)
-        (pc/frame :error {:message "invalid data"})
-        (do
-          (swap! state state/transition [:join-room message])
-          (if (joined? (:player message))
-            (pc/socket context on-socket)
-            (pc/frame :error {:message "not joined"})))))))
+  [context {:keys [data] :as frame}]
+  (if-not (schema/valid? schema/+subscribe-msg+ data)
+    (pc/frame :error {:message "invalid message"})
+    (let [roomid (:room data)
+          room (get-in @state [:rooms roomid])]
+      (-> (assoc context ::room room)
+          (pc/socket on-subscribe)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Game Logic
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn broadcast-start
+  [room]
+  (let [ch (:in room)
+        msg {:room (:id room)
+             :event :start}]
+    (a/go
+      (a/>! ch (pc/frame :message msg)))))
+
 ;; (defn start-game
 ;;   [roomid]
+;;   (let [room (get-in @state [:rooms roomid])]
+;;     (a/go
+;;       (<! (wait-start room))
+;;       (<! (broadcast-start room))
 ;;   )
