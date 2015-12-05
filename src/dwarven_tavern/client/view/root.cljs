@@ -54,8 +54,8 @@
 (defn game-grid
   [own]
   (let [{:keys [width height team1 team2 barrel] } (->  own :rum/props :state deref)
-        {[posx-team1  posy-team1]  :pos dir-team1  :dir} (first team1)
-        {[posx-team2  posy-team2]  :pos dir-team2  :dir} (first team2)
+        {[posx-team1  posy-team1] :pos dir-team1 :dir} (first (:members team1))
+        {[posx-team2  posy-team2] :pos dir-team2 :dir} (first (:members team2))
         {[posx-barrel posy-barrel] :pos dir-barrel :dir} barrel]
     [:table.grid
      [:tbody
@@ -75,8 +75,8 @@
 (defn application
   [own]
   (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref)
-        {score-t1 :score} (first team1)
-        {score-t2 :score} (first team2)]
+        {score-t1 :score} team1
+        {score-t2 :score} team2]
     (html
      [:.container
       [:img#logo {:src "/images/tavern-logo.png"}]
