@@ -51,9 +51,18 @@
                       :signal (partial st/transact! db)})
              element))
 
+(defn start-router!
+  [db]
+  (bidi/start-router! ["/" {"home" :home
+                            ["game/" :id] :game}]
+                      {:on-navigate (fn [location]
+                                      (swap! db assoc :location (:handler location)))
+                       :default-location {:handler :home}}))
+
 (defn init
   [db]
   (fetch-rooms! db)
+  (start-router! db)
   (render! (gdom/getElement "app") db))
 
 (init db)
@@ -65,9 +74,4 @@
   )
 
 
-(bidi/start-router! ["/" {"home" :home
-                          ["game/" :id] :game}]
-                    {:on-navigate (fn [location]
-                                    (println location)
-                                    (swap! db assoc :location (:handler location)))
-                     :default-location {:handler :home}})
+
