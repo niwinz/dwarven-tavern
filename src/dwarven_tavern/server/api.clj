@@ -2,7 +2,7 @@
   (:require [clojure.core.async :as a]
             [catacumba.core :as ct]
             [catacumba.handlers.postal :as pc]
-            [dwarven-tavern.common.state :as state]
+            [dwarven-tavern.state :as state]
             [dwarven-tavern.server.schema :as schema]
             ;; [dwarven-tavern.server.game :as game]
             ))
@@ -19,13 +19,13 @@
 
 (defn initialize-room
   []
-  (let [out (a/chan 8)
+  (let [out (a/chan)
         mix (a/mix out)]
-    {:players {}
-     :socket out
-     :mix mix
-     :status :incomplete
-     :responses {}}))
+    (merge (game/mk-room)
+           {:socket out
+            :mix mix
+            :status :incomplete
+            :responses {}})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; State
