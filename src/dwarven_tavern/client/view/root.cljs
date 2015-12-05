@@ -159,9 +159,33 @@
        [:div.form-wrapper
         [:div.image-wrapper
          [:img#logo {:src "/images/tavern-logo.png"}]]
-        [:input {:auto-focus "autofocus" :placeholder "What's yar name?"}]
+        [:input {:auto-focus "autofocus"
+                 :placeholder "What's yar name?"
+                 :pattern "^[a-zA-Z0-9]+$"}]
         [:a.join-game {:href "#/rooms"
                        :on-click #(bidi/set-location! router {:handler :rooms})} "To Arms!"]]]))
+
+(defn render-help
+  [own]
+  [:.container.help
+   [:section.help1
+    [:h3 "Game objective"]
+    [:.content
+     [:img {:src "/images/rule1.png"}]
+     [:p  "You control one dwarf and your objective is to pick the barrel and
+          bring it to the taver zone for your team."]]]
+   [:section.help2
+    [:h3 "Taking turns"]
+    [:.content
+     [:img {:src "/images/rule2.png"}]
+     [:p  "You control one dwarf and your objective is to pick the barrel and
+          bring it to the taver zone for your team."]]]
+   [:section.help3
+    [:h3 "Collisions"]
+    [:.content
+     [:img {:src "/images/rule3.png"}]
+     [:p  "You control one dwarf and your objective is to pick the barrel and
+          bring it to the taver zone for your team."]]]])
 
 (defn render-root
   [own]
@@ -171,6 +195,7 @@
        :home  (render-home own)
        :rooms (render-room-list own)
        :game  (render-game own)
+       :help  (render-help own)
        [:div (str "Not found: " location)]))))
 
 (def root

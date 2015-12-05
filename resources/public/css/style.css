@@ -213,3 +213,35 @@ html, body {
     top: 317px;
     left: 80px;
 }
+
+.help section {
+    width: 700px;
+    max-width: 100%;
+}
+
+.help h3 {
+    margin-top: 0.6em;
+    margin-bottom: 0.2em;
+    font-size: 3em;
+    color: #FFEA85;
+    text-shadow: -2px 0 #802030, 0 2px #802030, 1px 0 #802030, 0 -2px #802030
+}
+
+.help section img {
+    width: 200px;
+    height: 200px;
+    border: 1px solid black;
+    background: white;
+}
+
+.help section p {
+    padding: 15px;
+    font-family: "Georgia";
+    font-size: 25px;
+}
+
+.help section .content {
+    display: flex;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 10px;
+}

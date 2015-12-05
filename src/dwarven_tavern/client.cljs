@@ -61,6 +61,7 @@
 (defn fetch-rooms!
   [db]
   (m/mlet [rooms (p/get-room-list)]
+    (println rooms)
     (st/transact! db [:room-list rooms])))
 
 (defn render!
@@ -72,9 +73,10 @@
 
 (defn start-router!
   [db]
-  (bidi/start-router! ["/" {"home" :home
-                            "rooms" :rooms
-                            ["game/" :id] :game}]
+  (bidi/start-router! ["/" {"home"        :home
+                            "rooms"       :rooms
+                            ["game/" :id] :game
+                            "help"        :help}]
                       {:on-navigate (fn [location]
                                       (swap! db assoc :location (:handler location)))
                        :default-location {:handler :home}}))
