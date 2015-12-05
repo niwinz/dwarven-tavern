@@ -17,7 +17,7 @@
   (case team
     :team1 {:id id :pos [(rand-int +default-room-width+)
                     (rand-int (quot +default-room-height+ 2))]
-       :team team :dir :south}
+            :team team :dir :south}
     :team2 {:id id :pos [(rand-int +default-room-width+)
                          (+ (rand-int (quot +default-room-height+ 2))
                             (quot +default-room-height+ 2))]

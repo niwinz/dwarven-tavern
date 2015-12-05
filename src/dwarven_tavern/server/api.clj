@@ -4,7 +4,7 @@
             [catacumba.handlers.postal :as pc]
             [dwarven-tavern.state :as state]
             [dwarven-tavern.game :as game]
-            [dwarven-tavern.server.schema :as schema]))
+            [dwarven-tavern.schema :as schema]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Game
