@@ -40,7 +40,7 @@
         (update-in [:rooms room team] conj player)
         (update-in [:rooms room :players] assoc player player'))))
 
-(defmethod state/transition :creat-room
+(defmethod state/transition :create-room
   [state [_ roomname]]
   (let [room (game/mk-room)]
     (update-in state [:rooms] assoc roomname room)))
@@ -52,7 +52,7 @@
       state
       (state/transition state [:assoc-player room player]))
     (-> state
-        (state/transition [:creat-room room])
+        (state/transition [:create-room room])
         (state/transition [:assoc-player room player]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
