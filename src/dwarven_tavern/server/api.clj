@@ -32,7 +32,7 @@
     (pc/frame :error errors)
     (let [roomid (:room data)
           state (state/transact! [:room/join data])
-          room (get-in state [:rooms roomid])]
+          room (state/get-room-by-id state roomid)]
       (pc/frame {:room (strip-room room)}))))
 
 (defmethod handler [:novelty :start]

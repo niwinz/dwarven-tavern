@@ -28,6 +28,10 @@
   ([id] (get-room-by-id @db id))
   ([state id] (get-in state [:rooms id])))
 
+(defn get-room-player-by-id
+  ([roomid id] (get-room-by-id @db roomid id))
+  ([state roomid id] (get-in state [:rooms roomid :players id])))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Transitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,8 +95,8 @@
 
 (defmethod transition :room/join
   [state [_ {:keys [room player] :as msg}]]
-  (if-let [room' (get-in state [:rooms room])]
-    (if-let [player' (get-in room' [:players player])]
+  (if-let [room' (get-room-by-id state room)]
+    (if-let [player' (get-room-player-by-id room player)]
       state
       (transition state [:room/assoc-player room player]))
     (-> state
@@ -101,11 +105,10 @@
 
 (defmethod transition :game/start
   [state [_ roomid]]
-  (let [state (update-in state [:rooms roomid] merge
-                         {:status :playing
-                          :start-time (System/nanoTime)})
-        room (get-in state [:rooms roomid])]
-    state))
+  (update-in state [:rooms roomid]
+             merge
+             {:status :playing
+              :start-time (System/nanoTime)}))
 
 (defmethod transition :game/move
   [state [_ data]]
