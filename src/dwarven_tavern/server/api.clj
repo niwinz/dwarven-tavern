@@ -41,7 +41,7 @@
     (pc/frame :error errors)
     (let [roomid (:room data)]
       (state/transact! [:game/start roomid])
-      (let [room (state/room-by-id roomid)]
+      (let [room (state/get-room-by-id roomid)]
         (game/start room)
         (pc/frame {:ok true})))))
 
@@ -71,6 +71,6 @@
     (if-let [errors (schema/validate-subscribe-msg data)]
       (pc/frame :error errors)
       (let [roomid (:room data)
-            room (state/room-by-id roomid)]
+            room (state/get-room-by-id roomid)]
         (-> (assoc context ::room room)
             (pc/socket on-subscribe))))))

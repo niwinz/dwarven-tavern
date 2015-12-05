@@ -24,10 +24,9 @@
    (run! transact! (into [event] events))
    @db))
 
-
-(defn room-by-id
-  [id]
-  (get-in @db [:rooms id]))
+(defn get-room-by-id
+  ([id] (get-room-by-id @db id))
+  ([state id] (get-in state [:rooms id])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Transitions
