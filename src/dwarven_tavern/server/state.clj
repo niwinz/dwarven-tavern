@@ -87,7 +87,7 @@
      :id roomid
      :status :pending
      :players {}
-     :movements {}
+     :moviments {}
      :round nil
      :start-time nil
      :bus bus
