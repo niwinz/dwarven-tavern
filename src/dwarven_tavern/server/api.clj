@@ -3,15 +3,8 @@
             [catacumba.core :as ct]
             [catacumba.handlers.postal :as pc]
             [dwarven-tavern.server.game :as game]
-            [dwarven-tavern.state :as state]
+            [dwarven-tavern.server.state :as state]
             [dwarven-tavern.schema :as schema]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; State
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defonce state
-  (atom {:rooms {}}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
@@ -38,7 +31,7 @@
   (if-let [errors (schema/validate-join-msg data)]
     (pc/frame :error errors)
     (let [roomid (:room data)
-          state (swap! state state/transition [:join data])
+          state (state/transact! [:room/join data])
           room (get-in state [:rooms roomid])]
       (pc/frame {:room (strip-room room)}))))
 
@@ -46,17 +39,18 @@
   [context {:keys [data]}]
   (if-let [errors (schema/validate-start-msg data)]
     (pc/frame :error errors)
-    (let [roomid (:room data)
-          room (get-in @state [:rooms roomid])]
-      (swap! state state/transition [:start-game roomid])
-      (pc/frame {:ok true}))))
+    (let [roomid (:room data)]
+      (state/transact! [:game/start roomid])
+      (let [room (state/room-by-id roomid)]
+        (game/start room)
+        (pc/frame {:ok true})))))
 
 (defmethod handler [:novelty :movement]
   [context {:keys [data]}]
   (if-let [errors (schema/validate-move-msg data)]
     (pc/frame :error errors)
     (do
-      (swap! state state/transition [:move data])
+      (state/transact! [:game/move data])
       (pc/frame {}))))
 
 (defmethod handler [:subscribe :game]
@@ -77,6 +71,6 @@
     (if-let [errors (schema/validate-subscribe-msg data)]
       (pc/frame :error errors)
       (let [roomid (:room data)
-            room (get-in @state [:rooms roomid])]
+            room (state/room-by-id roomid)]
         (-> (assoc context ::room room)
             (pc/socket on-subscribe))))))
