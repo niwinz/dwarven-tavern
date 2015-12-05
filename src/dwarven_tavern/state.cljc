@@ -1,4 +1,4 @@
-(ns dwarven-tavern.common.state)
+(ns dwarven-tavern.state)
 
 (defmulti transition
   (fn [_ [event]] event))
