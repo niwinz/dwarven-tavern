@@ -36,7 +36,9 @@
   ([] (get-room-list @db))
   ([state]
    (letfn [(extract [[key value]]
-             [key (+ (count (:team1 value)) (count (:team2 value)))])]
+             {:id key
+              :num (+ (count (:team1 value)) (count (:team2 value)))
+              :status (:status value)})]
      (mapv extract (:rooms state)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
