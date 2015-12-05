@@ -10,6 +10,9 @@
   {:room [v/required keyword?]
    :player [v/required keyword?]})
 
+(def +start-msg+
+  {:room [v/required keyword?]})
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public Api
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

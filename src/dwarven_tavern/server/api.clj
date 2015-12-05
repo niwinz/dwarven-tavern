@@ -71,22 +71,38 @@
         (state/transition [:assoc-player room player]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- in-room?
+  [state roomid playerid]
+  (let [room (get-in state [:rooms roomid :players])]
+    (contains? room playerid)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Postal Api
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmulti handler
   (comp (juxt :type :dest) second vector))
 
-;; (defmethod handler [:novelty :join]
-;;   [context {:keys [data]}]
-;;   (letfn [(join [{:keys [room player] :as msg}]
-;;             (swap! state state/transition [:join msg])
-;;             (contains? (get-in @state [:rooms room :players] player))]
+(defmethod handler [:novelty :join]
+  [context {:keys [data]}]
+  (if (schema/valid? schema/+join-msg+ data)
+    (do
+      (swap! state state/transition [:join data])
+      (pc/frame {:ok true}))
+    (pc/frame :error {:message "invalid message"})))
 
+(declare start-game)
 
-;;   (if-not (schema/valid? schema/+join-msg+ data)
-;;     (pc/frame :error {:message "invalid message"})
-;;   )
+(defmethod handler [:novelty :start]
+  [context {:keys [data]}]
+  (if (schema/valid? schema/+start-msg+ data)
+    (let [roomid (:room data)]
+      (start-game roomid)
+      (pc/frame {:ok true}))
+    (pc/frame :error {:message "invalid message"})))
 
 (defmethod handler [:subscribe :game]
   [context frame]
@@ -105,3 +121,11 @@
           (if (joined? (:player message))
             (pc/socket context on-socket)
             (pc/frame :error {:message "not joined"})))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Game Logic
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (defn start-game
+;;   [roomid]
+;;   )
