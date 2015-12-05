@@ -2,14 +2,10 @@
   (:require [postal.client :as postal]
             [cats.core :as m]
             [promesa.core :as prom]
-            [beicon.core :as rx]))
+            [beicon.core :as rx]
+            [dwarven-tavern.client.rx :refer [from-promise]]))
 
 (def client (postal/client "http://localhost:5050/api"))
-
-(defn- promise->observable
-  [p]
-  (rx/create (fn [sink]
-                (prom/branch p sink #(sink (js/Error. %))))))
 
 (defn join-room
   [room]
@@ -26,6 +22,5 @@
 (defn play-in-room
   [room]
   (rx/flat-map
-   #(subscribe-to-room :foo)
-   (promise->observable
-    (prom/then (join-room :foo) #(start-game :foo)))))
+   #(subscribe-to-room room)
+   (from-promise (join-room room))))
