@@ -87,8 +87,6 @@
       (pc/frame {:room (select-keys room [:width :height :players :team1 :team2 :barrel])}))
     (pc/frame :error {:message "invalid message"})))
 
-(declare start-game)
-
 (defmethod handler [:novelty :start]
   [context {:keys [data]}]
   (if (schema/valid? schema/+start-msg+ data)
@@ -99,13 +97,19 @@
     (pc/frame :error {:message "invalid message"})))
 
 (defn on-subscribe
-  [{:keys [in out ctrl] :as context}]
+  [{:keys [out ctrl] :as context}]
   (let [room (::room context)
-        ch  (a/tap (:mult room) (a/chan))]
+        ch (a/tap (:mult room) (a/chan) true)]
     (a/go-loop []
-      (a/<! ch)
-      (a/<! (a/timeout 1000))
-      (recur))))
+      (let [[val p] (a/alts! [ch ctrl])]
+        (cond
+          (identical? p ctrl)
+          (a/close! ch)
+
+          (identical? p ch)
+          (if (a/>! out val)
+            (recur)
+            (a/close! ch)))))))
 
 (defmethod handler [:subscribe :game]
   [context {:keys [data] :as frame}]
