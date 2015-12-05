@@ -1,7 +1,8 @@
 (ns dwarven-tavern.client.view.root
   (:require [sablono.core :as html :refer-macros [html]]
             [rum.core :as rum]
-            [dwarven-tavern.client.view.util :as util]))
+            [dwarven-tavern.client.view.util :as util]
+            ))
 
 (enable-console-print!)
 
@@ -82,7 +83,7 @@
 
 (defn game-grid
   [own]
-  (let [{:keys [width height team1 team2 barrel] } (->  own :rum/props :state deref)
+  (let [{:keys [width height team1 team2 barrel] } (->  own :rum/props :state deref :current-game)
         signal (get-in own [:rum/props :signal])
         {[posx-team1  posy-team1] :pos dir-team1 :dir} (first (:members team1))
         {[posx-team2  posy-team2] :pos dir-team2 :dir} (first (:members team2))
@@ -103,29 +104,53 @@
               (render-dwarf :team2 dir-team2 (mod (rum/react heartbeat-atom) 3)))])])]]))
 
 
-(defn application
+(defn render-game
   [own]
-  (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref)
+  (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref :current-game)
         {score-t1 :score} team1
         {score-t2 :score} team2]
+    [:.container.game
+     [:img#logo {:src "/images/tavern-logo.png"}]
+     [:.turnprogress
+      [:span.time-label "Turn time"]
+      [:.time-slider [:.progress {:style {"width" (str (* 100 (/ time-progress total-time)) "%")}}]]
+      [:.time-counter time-progress]]
+     [:.scoreboard
+      [:.team.team1 [:span.name "Dialelo"] [:span.score score-t1]]
+      [:.vs "VS"]
+      [:.team.team2 [:span.name "Niwinz"] [:span.score score-t2]]]
+     (game-grid own)]))
+
+(defn render-room-list
+  [own]
+  (let [{:keys [room-list]} (-> own :rum/props :state deref)]
+    [:.container.room-list
+     [:img#logo {:src "/images/tavern-logo.png"}]
+     [:.room-list-container
+      [:div.room-list-header
+       [:h2.room-list-title "Available games"]
+       [:a.new-game {:href "#"} "New game!"]]
+      [:ul
+       (for [{:keys [id players max joinable]} room-list]
+         [:li
+          [:div.room-element
+           [:span.room-element-name id]
+           [:span.room-element-room (str "(" players "/" max ")")]
+           [:a.join {:href "#"} "Join"]]])]]]))
+
+(defn render-root
+  [own]
+  (let [{:keys [location]} (-> own :rum/props :state deref)]
     (html
-     [:.container
-      [:img#logo {:src "/images/tavern-logo.png"}]
-      [:.turnprogress
-       [:span.time-label "Turn time"]
-       [:.time-slider [:.progress {:style {"width" (str (* 100 (/ time-progress total-time)) "%")}}]]
-       [:.time-counter time-progress]]
-      [:.scoreboard
-       [:.team.team1 [:span.name "Dialelo"] [:span.score score-t1]]
-       [:.vs "VS"]
-       [:.team.team2 [:span.name "Niwinz"] [:span.score score-t2]]]
-      (game-grid own)])))
+     (condp = location
+       :home (render-room-list own)
+       :game (render-game own)
+       [:div (str "Not found: " location)]))))
 
 (def root
   (util/component
-   {:render application
+   {:render render-root
     :name "root"
     :mixins [util/cursored rum/reactive]}))
-
 
 

@@ -19,7 +19,8 @@
 
                  [bouncer "0.3.3" :exclusions [clj-time]]
                  [rum "0.6.0"]
-                 [figwheel-sidecar "0.5.0-2" :scope "test"]]
+                 [figwheel-sidecar "0.5.0-2" :scope "test"]
+                 [bidi "1.21.1"]]
   ;; :main ^:skip-aot dwarven-tavern.server
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

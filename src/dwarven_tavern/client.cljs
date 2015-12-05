@@ -4,6 +4,7 @@
             [rum.core :as rum]
             [promesa.core :as prom]
             [beicon.core :as rx]
+            [bidi.router :as bidi]
             [dwarven-tavern.client.view.root :as v]
             [dwarven-tavern.client.postal :as p]
             [dwarven-tavern.client.state :as st]
