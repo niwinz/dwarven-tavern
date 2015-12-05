@@ -27,6 +27,20 @@
             :mult mult
             :status :incomplete})))
 
+(defn- choice-team
+  [room playerid]
+  (let [team1 (:team1 room)
+        team2 (:team2 room)]
+    (cond
+      (empty? team1) :team1
+      (empty? team2) :team2
+      (contains? team1 playerid) :team1
+      (contains? team2 playerid) :team2
+
+      (> (count team1) (count team2)) :team2
+      (> (count team2) (count team1)) :team1
+      :else :team1)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; State
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -37,17 +51,10 @@
 (defmethod state/transition :assoc-player
   [state [_ room player]]
   (let [room' (get-in state [:rooms room])
-        team1 (:team1 room')
-        team2 (:team2 room')
-        teamid (cond
-                 (empty? team1) 1
-                 (empty? team2) 2
-                 (contains? team1 player) 1
-                 (contains? team2 player) 2
-                 :else (throw (ex-info "Inconsistentcy!" {})))
-        player' (game/mk-player player teamid)]
+        team (choice-team room' player)
+        player' (game/mk-player player team)]
     (-> state
-        (update-in [:rooms room (keyword (str "team" teamid))] conj player)
+        (update-in [:rooms room team] conj player)
         (update-in [:rooms room :players] assoc player player'))))
 
 (defmethod state/transition :creat-room
