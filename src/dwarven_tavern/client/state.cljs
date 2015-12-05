@@ -26,4 +26,15 @@
       (rx/on-value tx #(transact! db %))
       (reset! db tx))))
 
+(defn move
+  [[x y] direction]
+  (case direction
+    :north [x (dec y)]
+    :south [x (inc y)]
+    :west  [(dec x) y]
+    :east  [(inc x) y]))
 
+(defn clamp
+  [[x y] width height]
+  [(max (min x (dec width)) 0)
+   (max (min y (dec height)) 0)])

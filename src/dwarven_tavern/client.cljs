@@ -28,6 +28,12 @@
   [state [_ room]]
   (update state :rooms (fnil merge {}) room))
 
+
+(defmethod st/transition :move
+  [state [_ {:keys [player team room direction]}]]
+  ;; TODO
+  state)
+
 (let [state (util/focus db)]
   (rum/mount (v/root {:state state
                       :signal (partial st/transact! db)})
