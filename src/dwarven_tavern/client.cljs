@@ -31,11 +31,14 @@
   (assoc state :player (keyword name)))
 
 (defmethod st/transition :join-room
-  [{:keys [player]} room]
-  (rx/map (p/play-in-room player room)
-          (fn [msg]
-            ;; TODO: process incoming messages
-            [:noop])))
+  [{:keys [player]} [_ room]]
+  (let [join-room-response (p/play-in-room player room)]
+    (println join-room-response)
+    (rx/map (fn [msg]
+              ;; TODO: process incoming messages
+              (println msg)
+              [:noop])
+            join-room-response)))
 
 (defmethod st/transition :start-game
   [_ room]

@@ -22,7 +22,7 @@
 
 (defn subscribe-to-room
   [room]
-  (postal/subscribe client :game {:room room}))
+  (postal/subscribe client :game/events {:room room :player "ddd"}))
 
 (defn play-in-room
   [player room]

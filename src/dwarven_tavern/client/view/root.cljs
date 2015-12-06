@@ -2,6 +2,7 @@
   (:require [sablono.core :as html :refer-macros [html]]
             [rum.core :as rum]
             [bidi.router :as bidi]
+            [dwarven-tavern.client.postal :as p]
             [dwarven-tavern.client.view.util :as util]))
 
 (enable-console-print!)
@@ -133,14 +134,21 @@
 
 (defn render-room-list
   [own]
-  (let [router (-> own :rum/props :router)
-        {:keys [room-list]} (-> own :rum/props :state deref)]
+  (let [signal (-> own :rum/props :signal)
+        router (-> own :rum/props :router)
+        {:keys [room-list]} (-> own :rum/props :state deref)
+        player-id (-> own :rum/props :state deref :player)]
     [:.container.room-list
      [:img#logo {:src "/images/tavern-logo.png"}]
      [:.room-list-container
       [:div.room-list-header
        [:h2.room-list-title "Available games"]
-       [:a.new-game {:href "#"} "New game!"]]
+       [:a.new-game {:href "#"
+                     :on-click (fn [e]
+                                 (.preventDefault e)
+                                 (let [room-id (keyword (str "room_" (rand-int 100000000)))]
+                                   (signal [:join-room room-id])))}
+        "New game!"]]
       [:a.help {:href "#/help"} "How to play?"]
       [:ul
        (for [{:keys [id players status]} room-list]
