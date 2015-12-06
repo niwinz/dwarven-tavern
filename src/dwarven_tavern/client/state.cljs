@@ -27,10 +27,12 @@
 (defn transact!
   [db ev]
   (let [tx (transition @db ev)]
-    #_(println "Transition: " tx)
+    (println "Transition: " tx)
     (cond
       (rx/observable? tx)
-      (rx/on-value tx #(transact! db %))
+      (rx/on-value tx (fn [acc]
+                        (println acc)
+                        (transact! db acc)))
 
       (prom/promise? tx)
       (prom/then tx #(transact! db %))

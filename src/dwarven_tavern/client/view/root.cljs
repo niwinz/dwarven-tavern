@@ -85,10 +85,8 @@
 
 (defn game-grid
   [own]
-  (let [{:keys [width height team1 team2 barrel] } (->  own :rum/props :state deref :current-game)
+  (let [{:keys [width height players barrel] } (->  own :rum/props :state deref :current-game)
         signal (get-in own [:rum/props :signal])
-        {[posx-team1  posy-team1] :pos dir-team1 :dir} (first (:players team1))
-        {[posx-team2  posy-team2] :pos dir-team2 :dir} (first (:players team2))
         {[posx-barrel posy-barrel] :pos} barrel
         dir-barrel :east]
     [:table.grid
@@ -103,19 +101,22 @@
                 {})}
          (for [column (range 0 width)]
            [:td
+            (for [[player-id {:keys [pos team dir]}] players]
+              (when (and (= row (first pos)) (= column (second pos)))
+                (render-dwarf team dir (mod (rum/react heartbeat-atom) 3)))
+              )
             (when (and (= row posy-barrel) (= column posx-barrel))
               (render-barrel dir-barrel))
-            (when (and (= row posy-team1) (= column posx-team1))
-              (render-dwarf :team1 dir-team1 (mod (rum/react heartbeat-atom) 3)))
-            (when (and (= row posy-team2) (= column posx-team2))
-              (render-dwarf :team2 dir-team2 (mod (rum/react heartbeat-atom) 3)))])])]]))
+
+            ])])]]))
 
 
 (defn render-game
   [own]
   (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref :current-game)
-        {score-t1 :score members-t1 :members} team1
-        {score-t2 :score members-t2 :members} team2]
+        score-t1 0
+        score-t2 0
+        ]
     [:.container.game
      [:img#logo {:src "/images/tavern-logo.png"}]
      [:.turnprogress
@@ -124,12 +125,12 @@
       [:.time-counter time-progress]]
      [:.scoreboard
       [:.team.team1
-       (for [id members-t1]
+       (for [id team1]
          [:span.name (name id)])
        [:span.score score-t1]]
       [:.vs "VS"]
       [:.team.team2
-       (for [id members-t2]
+       (for [id team2]
          [:span.name (name id)])
        [:span.score score-t2]]]
      (game-grid own)]))
