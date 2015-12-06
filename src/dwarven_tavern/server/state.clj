@@ -58,15 +58,24 @@
       (> (count team2) (count team1)) :team1
       :else :team1)))
 
+;; (defn mk-player
+;;   [id team]
+;;   (case team
+;;     :team1 {:id id :pos [(rand-int +default-room-width+)
+;;                          (rand-int (quot +default-room-height+ 2))]
+;;             :team team :dir :south}
+;;     :team2 {:id id :pos [(rand-int +default-room-width+)
+;;                          (+ (rand-int (quot +default-room-height+ 2))
+;;                             (quot +default-room-height+ 2))]
+;;             :te
+
+
 (defn mk-player
   [id team]
   (case team
-    :team1 {:id id :pos [(rand-int +default-room-width+)
-                         (rand-int (quot +default-room-height+ 2))]
+    :team1 {:id id :pos [5 7]
             :team team :dir :south}
-    :team2 {:id id :pos [(rand-int +default-room-width+)
-                         (+ (rand-int (quot +default-room-height+ 2))
-                            (quot +default-room-height+ 2))]
+    :team2 {:id id :pos [5 6]
             :team team :dir :north}))
 
 (defmethod transition :room/assoc-player
@@ -134,6 +143,10 @@
 (defmethod transition :game/update-round
   [state [_ roomid round]]
   (update-in state [:rooms roomid] assoc :round round))
+
+(defmethod transition :game/end
+  [state [_ roomid]]
+  (update-in state [:rooms roomid] assoc :status :end))
 
 (defmethod transition :game/move
   [state [_ data]]

@@ -28,8 +28,10 @@
       (a/>! bus (pc/frame :message msg)))))
 
 (defn- broadcast-stop-turn
-  [bus roomid round]
-  (let [msg {:event :turn/stop :round round}]
+  [bus roomid round turn]
+  (let [msg {:event :turn/stop
+             :round round
+             :turn turn}]
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 
@@ -102,8 +104,23 @@
         (contains? #{:north :south} (:dir player))
         (let [opfn (case (:dir player) :north dec :south inc)
               restplayers (filter #(not= % player) players)
-              [bx by] (:pos barrel)]
-          (update room :barrel assoc :pos [bx (opfn by)]))
+              [bx by] (:pos barrel)
+              [bx by] [bx (opfn by)]]
+          (cond
+            (= by 0)
+            (-> room
+                (assoc :status :round/ended)
+                (update :barrel assoc :pos [bx by])
+                (update-in [:punctuations :team1] inc))
+
+            (and (= by (dec state/+default-room-height+)))
+            (-> room
+                (assoc :status :round/ended)
+                (update :barrel assoc :pos [bx by])
+                (update-in [:punctuations :team2] inc))
+
+            :else
+            (update room :barrel assoc :pos [bx by])))
 
         (and (= (:dir player) :east) (not= bx state/+default-room-width+))
         (update room :barrel assoc :pos [(inc bx) by])
@@ -131,6 +148,7 @@
 (defn start-turn
   [bus roomid round turn]
   (a/go
+    (println "===> [" roomid "] round " 1 " turn " turn)
     (a/<! (broadcast-start-turn bus roomid round turn))
     (a/<! (a/timeout +turn-time+))
     (a/<! (broadcast-stop-turn bus roomid round turn))
@@ -139,18 +157,21 @@
 (defn start-round
   [bus roomid round]
   (a/go
+    (println "==> [" roomid "] round " round)
     (a/<! (broadcast-start-round bus roomid round))
     (loop [turn 0]
       (let [resolution (a/<! (start-turn bus roomid round turn))]
         (a/<! (broadcast-turn-resolution bus resolution))
-        (when-not (:end resolution)
+        (when-not (= :round/ended (:status resolution))
           (recur (inc turn)))))))
 
 (defn start
   [bus roomid]
   (a/go
+    (println "=> [" roomid "] game started")
     (loop [round 1]
-      (when (< round 3)
+      (when (< round +max-rounds+)
         (a/<! (start-round bus roomid round))
         (a/<! (a/timeout 500))
-        (recur (inc round))))))
+        (recur (inc round))))
+    (println "=> [" roomid "] game finished")))
