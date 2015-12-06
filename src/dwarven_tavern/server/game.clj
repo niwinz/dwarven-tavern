@@ -91,13 +91,6 @@
     (loop [players' (rest players)
            player (first players)
            room room]
-
-      ;; (println "--> player=" player)
-      ;; (println "--> pos=" (:pos player)
-      ;;          "barrel-pos=" (:pos barrel)
-      ;;          "result="  (not= (:pos player) (:pos barrel))
-      ;;          "result2=" (contains? #{:north :south} (:dir player)))
-      ;; (println)
       (cond
         (nil? player) room
 
