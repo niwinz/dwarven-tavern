@@ -48,7 +48,7 @@
     (let [roomid (:room data)
           state (state/transact! [:game/mark-as-started roomid])
           room (state/get-room-by-id state roomid)]
-      (game/start (:bus room) roomid)
+      (game/start (:bus room) (:closed room) roomid)
       (pc/frame {:ok true}))))
 
 (defmethod handler [:novelty :game/reset]

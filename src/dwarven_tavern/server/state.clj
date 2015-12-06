@@ -101,6 +101,7 @@
      :subscriptions #{}
      :round nil
      :start-time nil
+     :closed (a/promise-chan)
      :bus bus
      :mult mult
      :barrel {:pos [5 8]}

@@ -2,6 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.tools.namespace.repl :refer (refresh)]
             [clojure.pprint :refer (pprint)]
+            [clojure.core.async :as a]
             [dwarven-tavern.server :as app]
             [dwarven-tavern.server.api :as api]
             [dwarven-tavern.server.state :as s]
@@ -72,7 +73,10 @@
                       :data {:room :test}})
     )
 
-
+  (defn stop-game
+    []
+    (let [room (s/get-room-by-id :test)]
+      (a/close! (:closed room))))
   )
 
 

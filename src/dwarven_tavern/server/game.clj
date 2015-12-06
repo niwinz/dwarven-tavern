@@ -155,23 +155,27 @@
     (resolve-movements roomid)))
 
 (defn start-round
-  [bus roomid round]
+  [bus closed roomid round]
   (a/go
     (println "==> [" roomid "] round " round)
     (a/<! (broadcast-start-round bus roomid round))
     (loop [turn 0]
-      (let [resolution (a/<! (start-turn bus roomid round turn))]
-        (a/<! (broadcast-turn-resolution bus resolution))
-        (when-not (= :round/ended (:status resolution))
-          (recur (inc turn)))))))
+      (let [[val p] (a/alts!! [(start-turn bus roomid round turn) closed])]
+        (when (not= p closed)
+          (a/<! (broadcast-turn-resolution bus val))
+          (when-not (= :round/ended (:status val))
+            (recur (inc turn))))))))
 
 (defn start
-  [bus roomid]
+  [bus closed roomid]
   (a/go
     (println "=> [" roomid "] game started")
     (loop [round 1]
       (when (< round +max-rounds+)
-        (a/<! (start-round bus roomid round))
-        (a/<! (a/timeout 500))
-        (recur (inc round))))
+        (let [[val p] (a/alts!! [(start-round bus closed roomid round) closed])]
+          (when (not= p closed)
+            (a/<! (start-round bus closed roomid round))
+            (a/<! (a/timeout 500))
+            (recur (inc round))))))
+    (state/transact! [:game/end roomid])
     (println "=> [" roomid "] game finished")))
