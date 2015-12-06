@@ -22,13 +22,12 @@
 
 (defn subscribe-to-room
   [room]
-  (postal/subscribe client :game/events {:room room :player :ddd}))
+  (postal/subscribe client :game/events {:room room :player :unknown}))
 
 (defn play-in-room
   [player room]
-  (rx/flat-map
-   #(subscribe-to-room room)
-   (from-promise (join-room player room))))
+  (rx/flat-map #(subscribe-to-room room)
+               (from-promise (join-room player room))))
 
 (defn move
   [player room direction]

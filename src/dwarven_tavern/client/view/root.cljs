@@ -44,7 +44,8 @@
     [:.barrel {:style {:background-image sprite-url
                        :width (str width "px")
                        :height (str height "px")
-                       :background-position (str x "px " y "px")}}]))
+                       :background-position (str x "px " y "px")
+                       :transform "rotateZ(180deg)"}}]))
 
 (defn render-dwarf [team animation idx]
   (let [sprite-url (team sprites)
@@ -88,7 +89,8 @@
         signal (get-in own [:rum/props :signal])
         {[posx-team1  posy-team1] :pos dir-team1 :dir} (first (:players team1))
         {[posx-team2  posy-team2] :pos dir-team2 :dir} (first (:players team2))
-        {[posx-barrel posy-barrel] :pos dir-barrel :dir} barrel]
+        {[posx-barrel posy-barrel] :pos} barrel
+        dir-barrel :east]
     [:table.grid
      {:tab-index 0
       :on-key-down (movement signal :foo)} ;; TODO: pass actual room instead of `:foo`

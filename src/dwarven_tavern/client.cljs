@@ -4,6 +4,7 @@
             [rum.core :as rum]
             [promesa.core :as prom]
             [beicon.core :as rx]
+            [dwarven-tavern.client.rx :refer [from-promise]]
             [bidi.router :as bidi]
             [dwarven-tavern.client.view.root :as v]
             [dwarven-tavern.client.postal :as p]
@@ -32,13 +33,23 @@
 
 (defmethod st/transition :join-room
   [{:keys [player]} [_ room]]
-  (let [join-room-response (p/play-in-room player room)]
-    (println join-room-response)
-    (rx/map (fn [msg]
-              ;; TODO: process incoming messages
-              (println msg)
-              [:noop])
-            join-room-response)))
+
+  (let [join-promise (p/join-room player room)]
+    (rx/merge (-> join-promise
+                  (prom/then #(vector :room-joined (-> % :data :room)))
+                  (prom/then (fn [gd]
+                               (bidi/set-location! router {:handler :game
+                                                           :route-params {:id room}})
+                               gd))
+                  (from-promise))
+              (p/subscribe-to-room room))))
+
+(defmethod st/transition :room-joined
+  [state [_ room-data]]
+  (-> state
+      (assoc :location :game)
+      (assoc :current-game room-data))
+  )
 
 (defmethod st/transition :start-game
   [_ room]
