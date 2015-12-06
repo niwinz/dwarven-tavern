@@ -16,11 +16,6 @@
 ;;   (let [room (get-in state [:rooms roomid :players])]
 ;;     (contains? room playerid)))
 
-(defn- strip-room
-  [room]
-  (select-keys room [:width :height :players
-                     :team1 :team2 :barrel :status]))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Postal Api
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -39,7 +34,7 @@
     (let [roomid (:room data)
           state (state/transact! [:room/join data])
           room (state/get-room-by-id state roomid)]
-      (pc/frame {:room (strip-room room)}))))
+      (pc/frame {:room (state/strip-room room)}))))
 
 (defmethod handler [:novelty :game/start]
   [context {:keys [data]}]
@@ -58,7 +53,7 @@
     (let [roomid (:room data)
           state (state/transact! [:room/reset roomid])
           room (state/get-room-by-id state roomid)]
-      (pc/frame {:room (strip-room room)}))))
+      (pc/frame {:room (state/strip-room room)}))))
 
 (defmethod handler [:novelty :game/movement]
   [context {:keys [data]}]
@@ -68,24 +63,32 @@
       (state/transact! [:game/move data])
       (pc/frame {}))))
 
+(defn on-subscribe
+  [{:keys [out ctrl] :as context}]
+  (let [room (::room context)
+        ch (a/tap (:mult room) (a/chan) true)]
+    (a/go-loop []
+      (let [[val p] (a/alts! [ch ctrl])]
+        (cond
+          ;; If close is received from catacumba
+          ;; it means that client closes the
+          ;; connection.
+          (identical? p ctrl)
+          (a/close! ch)
+
+          ;; If something from room broadcast
+          ;; channel is received, retransmit
+          ;; it to the client.
+          (identical? p ch)
+          (if (a/>! out (pc/frame :message val))
+            (recur)
+            (a/close! ch)))))))
+
 (defmethod handler [:subscribe :game/events]
   [context {:keys [data] :as frame}]
-  (letfn [(on-subscribe [{:keys [out ctrl] :as context}]
-            (let [room (::room context)
-                  ch (a/tap (:mult room) (a/chan) true)]
-              (a/go-loop []
-                (let [[val p] (a/alts! [ch ctrl])]
-                  (cond
-                    (identical? p ctrl)
-                    (a/close! ch)
-
-                    (identical? p ch)
-                    (if (a/>! out val)
-                      (recur)
-                      (a/close! ch)))))))]
-    (if-let [errors (schema/validate-subscribe-msg data)]
-      (pc/frame :error errors)
-      (let [roomid (:room data)
-            room (state/get-room-by-id roomid)]
-        (-> (assoc context ::room room)
-            (pc/socket on-subscribe))))))
+  (if-let [errors (schema/validate-subscribe-msg data)]
+    (pc/frame :error errors)
+    (let [roomid (:room data)
+          room (state/get-room-by-id roomid)]
+      (-> (assoc context ::room room)
+          (pc/socket on-subscribe)))))

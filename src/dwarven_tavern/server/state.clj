@@ -24,6 +24,11 @@
    (run! transact! (into [event] events))
    @db))
 
+(defn strip-room
+  [room]
+  (select-keys room [:width :height :players
+                     :team1 :team2 :barrel :status]))
+
 (defn get-room-by-id
   ([id] (get-room-by-id @db id))
   ([state id] (get-in state [:rooms id])))

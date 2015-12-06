@@ -1,7 +1,5 @@
 (ns dwarven-tavern.server.game
   (:require [clojure.core.async :as a]
-            [cats.labs.lens :as l]
-            [catacumba.handlers.postal :as pc]
             [dwarven-tavern.server.state :as state]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -11,35 +9,10 @@
 (def ^:private +turn-time+ 5000)
 (def ^:private +max-rounds+ 3)
 
-(defn- broadcast-start-round
-  [bus roomid round]
-  (let [msg {:event :round/start :round round}]
-    (state/transact! [:game/update-round roomid round])
-    (a/go
-      (a/>! bus (pc/frame :message msg)))))
-
-(defn- broadcast-start-turn
-  [bus roomid round turn]
-  (let [msg {:event :turn/start
-             :round round
-             :turn turn
-             :time +turn-time+}]
-    (a/go
-      (a/>! bus (pc/frame :message msg)))))
-
-(defn- broadcast-stop-turn
-  [bus roomid round turn]
-  (let [msg {:event :turn/stop
-             :round round
-             :turn turn}]
-    (a/go
-      (a/>! bus (pc/frame :message msg)))))
-
-(defn- broadcast-turn-resolution
-  [bus resolution]
-  (let [msg {:event :turn/result :result resolution}]
-    (a/go
-      (a/>! bus (pc/frame :message msg)))))
+(defn- broadcast
+  [bus message]
+  (a/go
+    (a/>! bus message)))
 
 (defn materialize-moviment
   "A reducing function used for materialize the all collected
@@ -149,20 +122,25 @@
   [bus roomid round turn]
   (a/go
     (println "===> [" roomid "] round " 1 " turn " turn)
-    (a/<! (broadcast-start-turn bus roomid round turn))
+    (a/<! (broadcast bus {:event :turn/start :round round
+                          :turn turn :time +turn-time+}))
     (a/<! (a/timeout +turn-time+))
-    (a/<! (broadcast-stop-turn bus roomid round turn))
-    (resolve-movements roomid)))
+    (a/<! (broadcast bus {:event :turn/end :round round :turn turn})
+    (resolve-movements roomid))))
 
 (defn start-round
   [bus closed roomid round]
   (a/go
     (println "==> [" roomid "] round " round)
-    (a/<! (broadcast-start-round bus roomid round))
+
+    (state/transact! [:game/update-round roomid round])
+    (a/<! (broadcast bus {:event :round/start :round round}))
+
     (loop [turn 0]
       (let [[val p] (a/alts!! [(start-turn bus roomid round turn) closed])]
         (when (not= p closed)
-          (a/<! (broadcast-turn-resolution bus val))
+          (let [val' (state/strip-room val)]
+            (a/<! (broadcast bus {:event :result :room val'})))
           (when-not (= :round/ended (:status val))
             (recur (inc turn))))))))
 
