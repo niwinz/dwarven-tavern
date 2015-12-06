@@ -160,8 +160,7 @@
            [:span.room-element-room (str "(" players "/" 2 ")")]
            (when (= status :pending)
              [:a.join {:href (str "#/game/" (name id))
-                       :on-click #(bidi/set-location! router {:handler :game
-                                                              :route-params {:id id}})} "Join"])]])]
+                       :on-click #(signal [:join-room id])} "Join"])]])]
       ]]))
 
 

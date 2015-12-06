@@ -23,6 +23,11 @@
    {:on-navigate #(swap! db assoc :location (:handler %))
     :default-location {:handler :home}}))
 
+(defn sideffect [side-fn]
+  (fn [ret]
+    (side-fn)
+    ret))
+
 (defmethod st/transition :default
   [state _]
   state)
@@ -37,10 +42,9 @@
   (let [join-promise (p/join-room player room)]
     (rx/merge (-> join-promise
                   (prom/then #(vector :room-joined (-> % :data :room)))
-                  (prom/then (fn [gd]
-                               (bidi/set-location! router {:handler :game
-                                                           :route-params {:id room}})
-                               gd))
+                  (prom/then (sideffect
+                              #(bidi/set-location! router {:handler :game
+                                                           :route-params {:id room}})))
                   (from-promise))
               (p/subscribe-to-room room))))
 
