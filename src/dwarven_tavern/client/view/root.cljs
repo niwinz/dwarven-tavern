@@ -143,11 +143,11 @@
        [:a.new-game {:href "#"} "New game!"]]
       [:a.help {:href "#/help"} "How to play?"]
       [:ul
-       (for [{:keys [id players max status]} room-list]
+       (for [{:keys [id players status]} room-list]
          [:li
           [:div.room-element
-           [:span.room-element-name id]
-           [:span.room-element-room (str "(" players "/" max ")")]
+           [:span.room-element-name (name id)]
+           [:span.room-element-room (str "(" players "/" 2 ")")]
            (when (= status :pending)
              [:a.join {:href (str "#/game/" id)
                        :on-click #(bidi/set-location! router {:handler :game

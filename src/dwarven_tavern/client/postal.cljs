@@ -9,12 +9,12 @@
 
 (defn get-room-list
   []
-  (prom/then (postal/query client :rooms) #(:data %)))
+  (prom/then (postal/query client :room/list) #(:data %)))
 
 (defn join-room
   [player room]
-  (postal/novelty client :join {:player player
-                                :room room}))
+  (postal/novelty client :room/join {:player player
+                                     :room room}))
 
 (defn start-game
   [room]

@@ -15,7 +15,7 @@
   component/Lifecycle
   (start [this]
     (let [routes [[:any (cors {:origin "*"
-                               :allow-methods ["PUT"]
+                               :allow-methods ["PUT", "OPTIONS", "GET"]
                                :allow-headers ["Content-Type"]})]
                   [:any (ctc/extra-data {::app this})]
                   [:any "api" (pc/router api/handler)]

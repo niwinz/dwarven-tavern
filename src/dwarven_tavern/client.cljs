@@ -19,9 +19,7 @@
    ["/" {"home"  :home
          "rooms" :rooms
          ["game/" :id] :game}]
-   {:on-navigate (fn [location]
-                   (println location)
-                   (swap! db assoc :location (:handler location)))
+   {:on-navigate #(swap! db assoc :location (:handler %))
     :default-location {:handler :home}}))
 
 (defmethod st/transition :default
@@ -48,7 +46,7 @@
   (update state :rooms (fnil merge {}) room))
 
 (defmethod st/transition :room-list
-  [state rooms]
+  [state [_ rooms]]
   (assoc state :room-list rooms))
 
 (defmethod st/transition :move
@@ -61,7 +59,6 @@
 (defn fetch-rooms!
   [db]
   (m/mlet [rooms (p/get-room-list)]
-    (println rooms)
     (st/transact! db [:room-list rooms])))
 
 (defn render!
