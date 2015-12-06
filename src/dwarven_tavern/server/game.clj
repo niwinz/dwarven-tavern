@@ -37,7 +37,7 @@
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 
-(defn- materialize-moviment
+(defn materialize-moviment
   "A reducing function used for materialize the all collected
   moviments into new room state."
   [room [playerid dir :as moviment]]
@@ -51,7 +51,7 @@
                :west (if (= cx 0) [cx cy] [(dec cx) cy]))]
     (update-in room [:players playerid] merge {:pos rpos :dir dir})))
 
-(defn- reposition-players
+(defn reposition-players
   "Secondary algorithm that resolves the colisions of players
   with barrel postion after the barrel has ben moved.
 
@@ -60,21 +60,23 @@
   to the new position."
   [{:keys [barrel players] :as room}]
   (let [players (vals players)
-        players (filter #(= (:post barrel) (:pos %)) players)]
-    (loop [players players
+        players (filter #(= (:pos barrel) (:pos %)) players)]
+    (loop [player (first players)
+           players (rest players)
            room room]
-      (if-let [player (first players)]
+      (if (nil? player)
+        room
         (let [attempt [(rand-int state/+default-room-width+)
-                        (rand-int state/+default-room-height+)]
+                       (rand-int state/+default-room-height+)]
               result (filter #(= (:pos %) attempt)
                              (into [barrel] (vals (:players room))))]
           (if (empty? result)
-            (recur (rest players)
+            (recur (first players)
+                   (rest players)
                    (update-in room [:players (:id player)] assoc :pos attempt))
-            (recur players room)))
-        room))))
+            (recur player players room)))))))
 
-(defn- resolve-colisions
+(defn resolve-colisions
   "Main algorithm that resolves the colisions of players
   with barrel position.
 
@@ -86,29 +88,40 @@
   [{:keys [barrel players] :as room}]
   (let [players (vals players)
         [bx by] (:pos barrel)]
-    (loop [players' players
+    (loop [players' (rest players)
+           player (first players)
            room room]
-      (if-let [player (first players')]
-        (cond
-          (not= (:pos player) (= :pos barrel))
-          (recur (rest players') room)
 
-          (contains? #{:north :south} (:dir player))
-          (let [opfn (case (:pos player) :north inc :south dec)
-                restplayers (filter #(not= % player) players)
-                [bx by] (:pos barrel)]
-            (update room :barrel assoc :pos [bx (opfn by)]))
+      ;; (println "--> player=" player)
+      ;; (println "--> pos=" (:pos player)
+      ;;          "barrel-pos=" (:pos barrel)
+      ;;          "result="  (not= (:pos player) (:pos barrel))
+      ;;          "result2=" (contains? #{:north :south} (:dir player)))
+      ;; (println)
+      (cond
+        (nil? player) room
 
-          (and (= (:dir player) :east) (not= bx state/+default-room-width+))
-          (update room :barrel assoc :pos [(inc bx) by])
+        (not= (:pos player) (:pos barrel))
+        (recur (rest players') (first players') room)
 
-          (and (= (:dir player) :west) (not= bx 0))
-          (update room :barrel assoc :pos [(dec bx) by])
+        (contains? #{:north :south} (:dir player))
+        (let [opfn (case (:dir player) :north dec :south inc)
+              restplayers (filter #(not= % player) players)
+              [bx by] (:pos barrel)]
+          (update room :barrel assoc :pos [bx (opfn by)]))
 
-          :else room)
-        room))))
+        (and (= (:dir player) :east) (not= bx state/+default-room-width+))
+        (update room :barrel assoc :pos [(inc bx) by])
 
-(defn- materialize-moviments
+        (and (= (:dir player) :west) (not= bx 0))
+        (update room :barrel assoc :pos [(dec bx) by])
+
+        :else
+        (recur (rest players')
+               (first players')
+               room)))))
+
+(defn materialize-moviments
   [room moviments]
   (as-> room room
     (reduce materialize-moviment room (:movimens room))

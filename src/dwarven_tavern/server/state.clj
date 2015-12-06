@@ -128,4 +128,4 @@
   (let [roomid (:room data)
         playerid (:player data)
         direction (:dir data)]
-    (update-in state [:rooms roomid :moviments] playerid direction)))
+    (update-in state [:rooms roomid :moviments] assoc playerid direction)))
