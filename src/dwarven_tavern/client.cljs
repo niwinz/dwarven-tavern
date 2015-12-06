@@ -1,40 +1,30 @@
 (ns dwarven-tavern.client
-  (:require [goog.dom :as gdom]
+  (:require [goog.dom :as dom]
             [cats.core :as m]
             [rum.core :as rum]
-            [promesa.core :as prom]
-            [beicon.core :as rx]
-            [dwarven-tavern.client.rx :refer [from-promise]]
+            [promesa.core :as p]
             [bidi.router :as bidi]
             [dwarven-tavern.client.view.root :as v]
-            [dwarven-tavern.client.postal :as p]
-            [dwarven-tavern.client.state :as st]
-            [dwarven-tavern.client.view.util :as util]))
+            [dwarven-tavern.client.rxstate :as rxs]))
+            ;; [beicon.core :as rx]
+            ;; [dwarven-tavern.client.rx :refer [from-promise]]
+            ;; [dwarven-tavern.client.postal :as p]
+            ;; [dwarven-tavern.client.state :as st]
+            ;; [dwarven-tavern.client.view.util :as util]))
 
 (enable-console-print!)
 
-;; (defonce db (atom st/initial-state))
+(defonce state (atom {:location :home}))
 
-;; (defonce router
-;;   (bidi/start-router!
-;;    ["/" {"home"  :home
-;;          "rooms" :rooms
-;;          ["game/" :id] :game}]
-;;    {:on-navigate #(swap! db assoc :location (:handler %))
-;;     :default-location {:handler :home}}))
+(defonce router
+  (bidi/start-router!
+   ["/" {"home"  :home
+         "rooms" :rooms
+         ["game/" :id] :game}]
+   {:on-navigate #(swap! state assoc :location (:handler %))
+    :default-location {:handler :home}}))
 
-;; (defn sideffect [side-fn]
-;;   (fn [ret]
-;;     (side-fn)
-;;     ret))
-
-;; (defmethod st/transition :default
-;;   [state _]
-;;   state)
-
-;; (defmethod st/transition :new-player
-;;   [state [_ name]]
-;;   (assoc state :player (keyword name)))
+(rxs/init! state)
 
 ;; (defmethod st/transition :join-room
 ;;   [{:keys [player]} [_ room]]
@@ -106,11 +96,8 @@
 ;;   (start-router! db)
 ;;   (render! (gdom/getElement "app") db))
 
-;; (init db)
+;; Main
+(let [el (dom/getElement "app")]
+  (rum/mount (v/root {}) el))
 
-;; (comment
-;;   (in-ns 'dwarven-tavern.client)
-;;   (fetch-rooms! db)
-;;   (:rooms @db)
-;;   )
 

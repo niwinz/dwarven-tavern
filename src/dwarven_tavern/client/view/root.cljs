@@ -221,9 +221,13 @@
        :help  (render-help own)
        [:div (str "Not found: " location)]))))
 
+(defn render
+  [own]
+  (html [:p "hello world"]))
+
 (def root
   (util/component
-   {:render render-root
+   {:render render
     :name "root"
     :mixins [util/cursored rum/reactive]}))
 

@@ -14,7 +14,7 @@
                   ;; :exclusions [com.fasterxml.jackson.core/jackson-core]]
                  [funcool/cats "1.2.0"]
                  [funcool/promesa "0.6.0"]
-                 [funcool/beicon "0.2.0"]
+                 [funcool/beicon "0.3.0-SNAPSHOT"]
                  [funcool/postal "0.2.0"]
 
                  [bouncer "0.3.3" :exclusions [clj-time]]

@@ -10,6 +10,10 @@
      :source-paths ["src"]
      :compiler {:main 'dwarven-tavern.client
                 :asset-path "js"
+                :optimizations :none
+                :pretty-print true
+                :language-in  :ecmascript5
+                :language-out :ecmascript5
                 :output-to "resources/public/js/main.js"
                 :output-dir "resources/public/js"
                 :verbose true}}]})
