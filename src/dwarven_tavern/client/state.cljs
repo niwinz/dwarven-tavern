@@ -27,6 +27,7 @@
 (defn transact!
   [db ev]
   (let [tx (transition @db ev)]
+    (println "Transition: " tx)
     (cond
       (rx/observable? tx)
       (rx/on-value tx #(transact! db (second %)))

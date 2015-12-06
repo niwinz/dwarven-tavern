@@ -85,3 +85,9 @@
                (rum/element cls state nil))))]
     (with-meta ctr {:rum/class cls})))
 
+
+(defn ref-value [own ref]
+  (let [component (-> own :rum/react-component)
+        ref-node (aget (.-refs component) ref)
+        dom-node  (.findDOMNode js/ReactDOM ref-node)]
+    (.-value dom-node)))

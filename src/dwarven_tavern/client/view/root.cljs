@@ -149,23 +149,34 @@
            [:span.room-element-name (name id)]
            [:span.room-element-room (str "(" players "/" 2 ")")]
            (when (= status :pending)
-             [:a.join {:href (str "#/game/" id)
+             [:a.join {:href (str "#/game/" (name id))
                        :on-click #(bidi/set-location! router {:handler :game
                                                               :route-params {:id id}})} "Join"])]])]
       ]]))
 
+
 (defn render-home
   [own]
-  (let [router (-> own :rum/props :router)]
+  (.log js/console (-> own :rum/react-component))
+  (let [router (-> own :rum/props :router)
+        signal (-> own :rum/props :signal)]
       [:.container.home
        [:div.form-wrapper
         [:div.image-wrapper
          [:img#logo {:src "/images/tavern-logo.png"}]]
-        [:input {:auto-focus "autofocus"
+        [:input {:ref "nick-input"
+                 :auto-focus "autofocus"
                  :placeholder "What's yar name?"
                  :pattern "^[a-zA-Z0-9]+$"}]
         [:a.join-game {:href "#/rooms"
-                       :on-click #(bidi/set-location! router {:handler :rooms})} "To Arms!"]]]))
+                       :on-click (fn [e]
+                                   (let [name (util/ref-value own "nick-input")]
+                                     (signal [:new-player
+                                              (if (or (empty? name) (nil? name))
+                                                (str "anonym_" (rand-int 100000))
+                                                name)
+                                              ])))}
+         "To Arms!"]]]))
 
 (defn render-help
   [own]

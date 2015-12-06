@@ -26,6 +26,10 @@
   [state _]
   state)
 
+(defmethod st/transition :new-player
+  [state [_ name]]
+  (assoc state :player (keyword name)))
+
 (defmethod st/transition :join-room
   [{:keys [player]} room]
   (rx/map (p/play-in-room player room)
