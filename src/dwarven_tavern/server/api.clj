@@ -18,7 +18,8 @@
 
 (defn- strip-room
   [room]
-  (select-keys room [:width :height :players :team1 :team2 :barrel]))
+  (select-keys room [:width :height :players
+                     :team1 :team2 :barrel :status]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Postal Api

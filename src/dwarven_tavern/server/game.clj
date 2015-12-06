@@ -19,23 +19,23 @@
       (a/>! bus (pc/frame :message msg)))))
 
 (defn- broadcast-start-turn
-  [bus roomid round]
+  [bus roomid round turn]
   (let [msg {:event :turn/start
              :round round
+             :turn turn
              :time +turn-time+}]
-    (state/transact! [:game/update-round roomid round])
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 
 (defn- broadcast-stop-turn
   [bus roomid round]
-  (let [msg {:event :turn/result :round round}]
+  (let [msg {:event :turn/stop :round round}]
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 
 (defn- broadcast-turn-resolution
   [bus resolution]
-  (let [msg {:event :turn-result :result resolution}]
+  (let [msg {:event :turn/result :result resolution}]
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 
@@ -117,17 +117,16 @@
                room)))))
 
 (defn materialize-moviments
-  [room moviments]
+  [room]
   (as-> room room
-    (reduce materialize-moviment room (:movimens room))
+    (reduce materialize-moviment room (:moviments room))
     (resolve-colisions room)
     (reposition-players room)))
 
 (defn resolve-movements
   [roomid]
-  (let [room (state/get-room-by-id roomid)
-        moviments (into [] (:moviments room))]
-    (materialize-moviments room moviments)))
+  (let [room (state/get-room-by-id roomid)]
+    (materialize-moviments room)))
 
 (defn start-turn
   [bus roomid round turn]
