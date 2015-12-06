@@ -9,27 +9,29 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:private +turn-time+ 5000)
+(def ^:private +max-rounds+ 3)
 
 (defn- broadcast-start-round
   [bus roomid round]
-  (let [msg {:event :round-start :round round}]
+  (let [msg {:event :round/start :round round}]
     (state/transact! [:game/update-round roomid round])
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 
 (defn- broadcast-start-turn
   [bus roomid round]
-  (let [msg {:event :turn-start :round round :time +turn-time+}]
+  (let [msg {:event :turn/start
+             :round round
+             :time +turn-time+}]
     (state/transact! [:game/update-round roomid round])
     (a/go
       (a/>! bus (pc/frame :message msg)))))
 
 (defn- broadcast-stop-turn
   [bus roomid round]
-  (let [msg {:event :turn-end :round round}]
+  (let [msg {:event :turn/result :round round}]
     (a/go
       (a/>! bus (pc/frame :message msg)))))
-
 
 (defn- broadcast-turn-resolution
   [bus resolution]
@@ -121,7 +123,7 @@
     (resolve-colisions room)
     (reposition-players room)))
 
-(defn- resolve-movements
+(defn resolve-movements
   [roomid]
   (let [room (state/get-room-by-id roomid)
         moviments (into [] (:moviments room))]

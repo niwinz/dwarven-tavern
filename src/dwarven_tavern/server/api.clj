@@ -27,11 +27,11 @@
 (defmulti handler
   (comp (juxt :type :dest) second vector))
 
-(defmethod handler [:query :rooms]
+(defmethod handler [:query :room/list]
   [context {:keys [data]}]
   (pc/frame (state/get-room-list)))
 
-(defmethod handler [:novelty :join]
+(defmethod handler [:novelty :room/join]
   [context {:keys [data]}]
   (if-let [errors (schema/validate-join-msg data)]
     (pc/frame :error errors)
@@ -40,7 +40,7 @@
           room (state/get-room-by-id state roomid)]
       (pc/frame {:room (strip-room room)}))))
 
-(defmethod handler [:novelty :start]
+(defmethod handler [:novelty :game/start]
   [context {:keys [data]}]
   (if-let [errors (schema/validate-start-msg data)]
     (pc/frame :error errors)
@@ -50,7 +50,7 @@
       (game/start (:bus room) roomid)
       (pc/frame {:ok true}))))
 
-(defmethod handler [:novelty :movement]
+(defmethod handler [:novelty :game/movement]
   [context {:keys [data]}]
   (if-let [errors (schema/validate-move-msg data)]
     (pc/frame :error errors)
@@ -58,7 +58,7 @@
       (state/transact! [:game/move data])
       (pc/frame {}))))
 
-(defmethod handler [:subscribe :game]
+(defmethod handler [:subscribe :game/events]
   [context {:keys [data] :as frame}]
   (letfn [(on-subscribe [{:keys [out ctrl] :as context}]
             (let [room (::room context)
