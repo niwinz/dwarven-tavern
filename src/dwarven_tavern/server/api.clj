@@ -51,6 +51,15 @@
       (game/start (:bus room) roomid)
       (pc/frame {:ok true}))))
 
+(defmethod handler [:novelty :game/reset]
+  [context {:keys [data]}]
+  (if-let [errors (schema/validate-reset-msg data)]
+    (pc/frame :error errors)
+    (let [roomid (:room data)
+          state (state/transact! [:room/reset roomid])
+          room (state/get-room-by-id state roomid)]
+      (pc/frame {:room (strip-room room)}))))
+
 (defmethod handler [:novelty :game/movement]
   [context {:keys [data]}]
   (if-let [errors (schema/validate-move-msg data)]

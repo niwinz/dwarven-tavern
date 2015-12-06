@@ -16,6 +16,9 @@
 (def +start-msg+
   {:room +room+})
 
+(def +reset-msg+
+  {:room +room+})
+
 (def +subscribe-msg+
   +join-msg+)
 
@@ -44,3 +47,4 @@
 (def validate-start-msg (validate +start-msg+))
 (def validate-subscribe-msg (validate +subscribe-msg+))
 (def validate-move-msg (validate +move-msg+))
+(def validate-reset-msg (validate +reset-msg+))

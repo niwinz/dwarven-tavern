@@ -87,20 +87,32 @@
      :id roomid
      :status :pending
      :players {}
+     :punctuations {:team1 0 :team2 0}
      :moviments {}
+     :subscriptions #{}
      :round nil
      :start-time nil
      :bus bus
      :mult mult
+     :barrel {:pos [5 8]}
      :team1 #{}
-     :team2 #{}
-     :barrel {:pos [(quot +default-room-width+ 2)
-                    (quot +default-room-height+ 2)]}}))
+     :team2 #{}}))
+     ;; :barrel {:pos [(quot +default-room-width+ 2)
+     ;;                (quot +default-room-height+ 2)]}}))
 
 (defmethod transition :room/create
   [state [_ roomid]]
   (let [room (mk-room roomid)]
     (update-in state [:rooms] assoc roomid room)))
+
+(defmethod transition :room/reset
+  [state [_ roomid]]
+  (let [old-room (get-room-by-id state roomid)
+        room (mk-room roomid)]
+    (a/close! (:bus old-room))
+    (reduce #(transition %1 [:room/join {:room roomid :player (:id %2)}])
+            (update-in state [:rooms] assoc roomid room)
+            (vals (:players old-room)))))
 
 (defmethod transition :room/join
   [state [_ {:keys [room player] :as msg}]]
