@@ -119,6 +119,7 @@
   [state [_ roomid]]
   (let [old-room (get-room-by-id state roomid)
         room (mk-room roomid)]
+    (a/close! (:closed old-room))
     (a/close! (:bus old-room))
     (reduce #(transition %1 [:room/join {:room roomid :player (:id %2)}])
             (update-in state [:rooms] assoc roomid room)
