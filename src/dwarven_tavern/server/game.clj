@@ -9,10 +9,10 @@
 (def ^:private +turn-time+ 5000)
 (def ^:private +max-rounds+ 3)
 
-(defn- broadcast
-  [bus message]
+(defn broadcast
+  [room message]
   (a/go
-    (a/>! bus message)))
+    (a/>! (:bus room) message)))
 
 (defn materialize-moviment
   "A reducing function used for materialize the all collected
@@ -119,41 +119,45 @@
     (materialize-moviments room)))
 
 (defn start-turn
-  [bus roomid round turn]
-  (a/go
-    (println "===> [" roomid "] round " 1 " turn " turn)
-    (a/<! (broadcast bus {:event :turn/start :round round
-                          :turn turn :time +turn-time+}))
-    (a/<! (a/timeout +turn-time+))
-    (a/<! (broadcast bus {:event :turn/end :round round :turn turn})
-    (resolve-movements roomid))))
+  [room round turn]
+  (let [roomid (:id room)]
+    (a/go
+      (println "===> [" roomid "] round " round " turn " turn)
+      (a/<! (broadcast room {:event :turn/start :round round
+                            :turn turn :time +turn-time+}))
+      (a/<! (a/timeout +turn-time+))
+      (a/<! (broadcast room {:event :turn/end :round round :turn turn}))
+      (resolve-movements roomid))))
 
 (defn start-round
-  [bus closed roomid round]
-  (a/go
-    (println "==> [" roomid "] round " round)
+  [room round]
+  (let [closed (:closed room)
+        roomid (:id room)]
+    (a/go
+      (println "==> [" roomid "] round " round)
 
-    (state/transact! [:game/update-round roomid round])
-    (a/<! (broadcast bus {:event :round/start :round round}))
+      (state/transact! [:game/update-round roomid round])
+      (a/<! (broadcast room {:event :round/start :round round}))
 
-    (loop [turn 0]
-      (let [[val p] (a/alts!! [(start-turn bus roomid round turn) closed])]
-        (when (not= p closed)
-          (let [val' (state/strip-room val)]
-            (a/<! (broadcast bus {:event :result :room val'})))
-          (when-not (= :round/ended (:status val))
-            (recur (inc turn))))))))
+      (loop [turn 0]
+        (let [[room p] (a/alts!! [(start-turn room round turn) closed])]
+          (when (not= p closed)
+            (let [room' (state/strip-room room)]
+              (a/<! (broadcast room {:event :result :room room'})))
+            (when-not (= :round/ended (:status room))
+              (recur (inc turn)))))))))
 
 (defn start
-  [bus closed roomid]
-  (a/go
-    (println "=> [" roomid "] game started")
-    (loop [round 1]
-      (when (< round +max-rounds+)
-        (let [[val p] (a/alts!! [(start-round bus closed roomid round) closed])]
-          (when (not= p closed)
-            (a/<! (start-round bus closed roomid round))
-            (a/<! (a/timeout 500))
-            (recur (inc round))))))
-    (state/transact! [:game/end roomid])
-    (println "=> [" roomid "] game finished")))
+  [room]
+  (let [closed (:closed room)
+        roomid (:id room)]
+    (a/go
+      (println "=> [" (:id room) "] game started")
+      (loop [round 1]
+        (when (< round +max-rounds+)
+          (let [[val p] (a/alts!! [(start-round room round) closed])]
+            (when (not= p closed)
+              (a/<! (a/timeout 500))
+              (recur (inc round))))))
+      (state/transact! [:game/end roomid])
+      (println "=> [" roomid "] game finished"))))

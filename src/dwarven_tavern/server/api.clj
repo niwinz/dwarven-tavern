@@ -8,15 +8,6 @@
             [dwarven-tavern.schema :as schema]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Helpers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (defn- in-room?
-;;   [state roomid playerid]
-;;   (let [room (get-in state [:rooms roomid :players])]
-;;     (contains? room playerid)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Postal Api
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -34,6 +25,8 @@
     (let [roomid (:room data)
           state (state/transact! [:room/join data])
           room (state/get-room-by-id state roomid)]
+      (game/broadcast room {:event :room/join
+                            :room (state/strip-room room)})
       (pc/frame {:room (state/strip-room room)}))))
 
 (defmethod handler [:novelty :game/start]
@@ -43,7 +36,7 @@
     (let [roomid (:room data)
           state (state/transact! [:game/mark-as-started roomid])
           room (state/get-room-by-id state roomid)]
-      (game/start (:bus room) (:closed room) roomid)
+      (game/start room)
       (pc/frame {:ok true}))))
 
 (defmethod handler [:novelty :game/reset]

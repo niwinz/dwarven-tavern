@@ -25,6 +25,8 @@
    @db))
 
 (defn strip-room
+  "Given a room map, return the basic and essential
+  information ready to be sent to the client."
   [room]
   (select-keys room [:width :height :players
                      :team1 :team2 :barrel :status]))
@@ -74,7 +76,6 @@
 ;;                             (quot +default-room-height+ 2))]
 ;;             :te
 
-
 (defn mk-player
   [id team]
   (case team
@@ -109,11 +110,10 @@
      :closed (a/promise-chan)
      :bus bus
      :mult mult
-     :barrel {:pos [5 8]}
+     :barrel {:pos [(quot +default-room-width+ 2)
+                    (quot +default-room-height+ 2)]}
      :team1 #{}
      :team2 #{}}))
-     ;; :barrel {:pos [(quot +default-room-width+ 2)
-     ;;                (quot +default-room-height+ 2)]}}))
 
 (defmethod transition :room/create
   [state [_ roomid]]
