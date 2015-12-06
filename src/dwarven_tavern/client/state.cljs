@@ -1,4 +1,4 @@
-(ns dwarven-tavern.client.rxstate
+(ns dwarven-tavern.client.state
   (:require [beicon.core :as rx]
             [promesa.core :as prom]))
 
@@ -39,14 +39,14 @@
   [event]
   (rx/push! bus event))
 
-(defn init!
+(defn init
   "Initializes the stream event loop and
   return a stream with model changes."
-  [state]
+  [initial-state]
   (let [update-s (rx/filter update? bus)
         watch-s  (rx/filter watch? bus)
         effect-s (rx/filter effect? bus)
-        model-s (rx/scan #(-apply-update %2 %1) @state update-s)]
+        model-s (rx/scan #(-apply-update %2 %1) initial-state update-s)]
 
     ;; Process effects: combine with the latest model to process the new effect
     (-> (rx/with-latest-from vector effect-s model-s)
@@ -58,4 +58,4 @@
       (rx/flat-map (fn [[event model]] (-apply-watch event model)) $)
       (rx/on-value $ emit!))
 
-    (rx/to-atom state model-s)))
+    model-s))

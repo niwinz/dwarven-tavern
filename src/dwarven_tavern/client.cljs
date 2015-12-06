@@ -5,26 +5,21 @@
             [promesa.core :as p]
             [bidi.router :as bidi]
             [dwarven-tavern.client.view.root :as v]
-            [dwarven-tavern.client.rxstate :as rxs]))
-            ;; [beicon.core :as rx]
-            ;; [dwarven-tavern.client.rx :refer [from-promise]]
-            ;; [dwarven-tavern.client.postal :as p]
-            ;; [dwarven-tavern.client.state :as st]
-            ;; [dwarven-tavern.client.view.util :as util]))
+            [dwarven-tavern.client.state :as s]))
 
 (enable-console-print!)
 
-(defonce state (atom {:location :home}))
+(defonce stream
+  (s/init {:location :home}))
 
 (defonce router
   (bidi/start-router!
    ["/" {"home"  :home
          "rooms" :rooms
          ["game/" :id] :game}]
-   {:on-navigate #(swap! state assoc :location (:handler %))
+   {:on-navigate (fn [item]
+                   (println "on-navigate"))
     :default-location {:handler :home}}))
-
-(rxs/init! state)
 
 ;; (defmethod st/transition :join-room
 ;;   [{:keys [player]} [_ room]]
