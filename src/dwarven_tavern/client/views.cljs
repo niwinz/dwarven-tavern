@@ -1,6 +1,7 @@
 (ns dwarven-tavern.client.views
   (:require [sablono.core :as html :refer-macros [html]]
             [rum.core :as rum]
+            [cats.labs.lens :as l]
             [cuerdas.core :as str]
             [dwarven-tavern.client.router :as r]
             [dwarven-tavern.client.game :as g]
@@ -145,10 +146,16 @@
 ;; Game Page
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 ;; (defn render-game
 ;;   [own]
-;;   (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref :current-game)
+;;   (let [state (rum/react s/state)
+
+
+
+;; {:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref :current-game)
+;;         total-time 0
+;;         time-progress 0
+
 ;;         score-t1 0
 ;;         score-t2 0
 ;;         ]
@@ -169,7 +176,6 @@
 ;;          [:span.name (name id)])
 ;;        [:span.score score-t2]]]
 ;;      (game-grid own)]))
-
 
 ;; (def game
 ;;   (util/component
@@ -193,8 +199,8 @@
   [{:keys [id status players] :as room}]
   (letfn [(on-join-clicked [e]
             (util/prevent-default e)
-            (rs/emit! (g/join-game room)
-                      (r/navigate :game {:id room})))]
+            (rs/emit! (g/join-game id)
+                      (r/navigate :game {:id id})))]
     (html
      [:li {:key (str "room-" id)}
       [:div.room-element
@@ -207,11 +213,7 @@
   [own]
   (letfn [(on-new-game-clicked [e]
             (util/prevent-default e)
-            (rs/emit! (g/join-game)))
-          (on-join-clicked [e room]
-            (util/prevent-default e)
-            (rs/emit! (g/join-game room)
-                      (r/navigate :game {:id room})))]
+            (rs/emit! (g/join-game)))]
     (let [state (rum/react s/state)
           player (:player state)
           rooms (:rooms state)]
@@ -302,9 +304,15 @@
 ;; Root
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def root-state
+  (as-> (l/select-keys [:location :location-params]) $
+    (l/focus-atom $ s/state)))
+
 (defn root-render
   [_]
-  (let [state (rum/react s/state)]
+  ;; Only reacts on url changes thans to the
+  ;; lenses focused main state.
+  (let [state (rum/react root-state)]
     (html
      (case (:location state)
        :home (home)
@@ -312,8 +320,6 @@
        :help (help)
        :game  (help)
        nil))))
-       ;; :rooms (render-room-list)))))
-       ;; :help  (render-help own)
 
 (def root
   (util/component

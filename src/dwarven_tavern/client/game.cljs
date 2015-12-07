@@ -61,23 +61,11 @@
              (rx/map (fn [rooms]
                        (rx/of
                         (swap #(assoc-rooms % rooms))
-                        (swap #(index-rooms % rooms)))))
-             (rx/merge-all)))
+                        (swap #(index-rooms % rooms)))))))
 
       IPrintWithWriter
       (-pr-writer [mv writer _]
         (-write writer "#<event:game/load-rooms>")))))
-
-;; (defn select-game
-;;   [room]
-;;   (reify
-;;     rs/UpdateEvent
-;;     (-apply-update [_ state]
-;;       (println "select-game, state:" state)
-;;       (let [games (filter #(= room (:id %)) (:rooms state))]
-;;         (if (empty? games)
-;;           state
-;;           (assoc state :current-game (first games)))))))
 
 (defn join-game
   ([] (join-game (str (gensym "room-"))))
@@ -91,10 +79,9 @@
               (rx/from-promise)
               (rx/map #(get-in % [:data :room]))
               (rx/map (fn [room]
-                        (rx/of (load-rooms)
-                               (swap #(assoc % :current room))
-                               (r/navigate :room {:id room}))))
-              (rx/merge-all))))
+                        (rx/of
+                         (load-rooms)
+                         (swap #(assoc % :current room))))))))
 
     IPrintWithWriter
     (-pr-writer [mv writer _]

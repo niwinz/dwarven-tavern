@@ -20,6 +20,7 @@
 
 (defmethod handler [:novelty :room/join]
   [context {:keys [data]}]
+  (println "RECEIVED:" data)
   (if-let [errors (schema/validate-join-msg data)]
     (pc/frame :error errors)
     (let [roomid (:room data)

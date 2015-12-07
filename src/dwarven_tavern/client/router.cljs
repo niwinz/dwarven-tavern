@@ -27,21 +27,21 @@
    (reify
      rs/EffectEvent
      (-apply-effect [_ state]
-       (bidi/set-location! +router+
-                           (merge
-                            {:handler name}
-                            (when params
-                              {:route-params params})))))))
+       (let [loc (merge {:handler name}
+                        (when params
+                          {:route-params params}))]
+         (println "navigate$-apply-effect" loc)
+         (bidi/set-location! +router+ loc))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Router declaration
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def ^:static
-  routes ["/" {"home"        :home
-               "rooms"       :rooms
-               ["game/" :id] :game
-               "help"        :help}])
+  routes ["/" [["home" :home]
+               ["rooms" :rooms]
+               [["game/" :id] :game]
+               ["help" :help]]])
 
 (declare update-location)
 
