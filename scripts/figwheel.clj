@@ -8,7 +8,7 @@
    [{:id "dev"
      :figwheel true
      :source-paths ["src"]
-     :compiler {:main 'dwarven-tavern.client
+     :compiler {:main 'dwarven-tavern.client.main
                 :asset-path "js"
                 :optimizations :none
                 :pretty-print true

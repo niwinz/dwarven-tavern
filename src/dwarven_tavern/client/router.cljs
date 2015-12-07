@@ -1,6 +1,37 @@
 (ns dwarven-tavern.client.router
   (:require [bidi.router :as bidi]
-            [dwarven-tavern.client.state :as s]))
+            [dwarven-tavern.client.rstore :as rs]))
+
+(enable-console-print!)
+
+(declare +router+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Events
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn update-location
+  [{:keys [handler route-params]}]
+  (reify
+    rs/UpdateEvent
+    (-apply-update [_ state]
+      (merge state
+             {:location handler}
+             (when route-params
+               {:location-params route-params})))))
+
+(defn navigate
+  ([name] (navigate name nil))
+  ([name params]
+   {:pre [(keyword? name)]}
+   (reify
+     rs/EffectEvent
+     (-apply-effect [_ state]
+       (bidi/set-location! +router+
+                           (merge
+                            {:handler name}
+                            (when params
+                              {:route-params params})))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Router declaration
@@ -17,32 +48,17 @@
 (defn- on-navigate
   [data]
   (println "onnavigate:" data)
-  (s/emit! (update-location data)))
+  (rs/emit! (update-location data)))
 
 (defonce +router+
   (bidi/start-router! routes {:on-navigate on-navigate
                               :default-location {:handler :home}}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Events
+;; Public Api
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn update-location
-  [{:keys [handler route-params]}]
-  (reify
-    s/UpdateEvent
-    (-apply-update [_ state]
-      (assoc state
-             :location handler
-             :location-params route-params))))
-
-(defn navigate
-  ([name] (navigate name nil))
-  ([name params]
-   {:pre [(keyword? name)]}
-   (reify
-     s/EffectEvent
-     (-apply-effect [_ state]
-       (bidi/set-location! +router+ {:handler name
-                                     :route-params params})))))
-
+(defn go
+  "Redirect the user to other url."
+  ([name] (go name nil))
+  ([name params] (rs/emit! (navigate name params))))

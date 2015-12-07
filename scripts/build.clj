@@ -5,10 +5,12 @@
 (let [start (System/nanoTime)]
   (b/build
    (b/inputs "test" "src")
-   {:main 'cats.runner
-    :output-to "out/tests.js"
-    :output-dir "out"
+   {:main 'dwarven-tavern.client.main
+    :output-to "resources/public/js/main.js"
+    :output-dir "resources/public/js"
     :optimizations :advanced
-    :target :nodejs
+    :language-in  :ecmascript5
+    :language-out :ecmascript5
+    :asset-path "/js"
     :verbose true})
   (println "... done. Elapsed" (/ (- (System/nanoTime) start) 1e9) "seconds"))
