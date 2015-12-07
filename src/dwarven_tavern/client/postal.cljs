@@ -6,9 +6,9 @@
 
 (def client (postal/client "http://localhost:5050/api"))
 
-;; (defn get-room-list
-;;   []
-;;   (prom/then (postal/query client :room/list) #(:data %)))
+(defn get-room-list
+  []
+  (postal/query client :room/list))
 
 ;; (defn join-room
 ;;   [player room]
