@@ -10,10 +10,10 @@
   []
   (postal/query client :room/list))
 
-;; (defn join-room
-;;   [player room]
-;;   (postal/novelty client :room/join {:player player
-;;                                      :room room}))
+(defn join-room
+  [player room]
+  (postal/novelty client :room/join {:player player
+                                     :room room}))
 
 ;; (defn start-game
 ;;   [room]

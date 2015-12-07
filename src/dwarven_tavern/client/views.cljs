@@ -2,7 +2,7 @@
   (:require [sablono.core :as html :refer-macros [html]]
             [rum.core :as rum]
             [cuerdas.core :as str]
-            [dwarven-tavern.client.router :as router]
+            [dwarven-tavern.client.router :as r]
             [dwarven-tavern.client.game :as g]
             [dwarven-tavern.client.rstore :as rs]
             [dwarven-tavern.client.state :as s]
@@ -112,30 +112,6 @@
 ;;             ])])]]))
 
 
-;; (defn render-game
-;;   [own]
-;;   (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref :current-game)
-;;         score-t1 0
-;;         score-t2 0
-;;         ]
-;;     [:.container.game
-;;      [:img#logo {:src "/images/tavern-logo.png"}]
-;;      [:.turnprogress
-;;       [:span.time-label "Turn time"]
-;;       [:.time-slider [:.progress {:style {"width" (str (* 100 (/ time-progress total-time)) "%")}}]]
-;;       [:.time-counter time-progress]]
-;;      [:.scoreboard
-;;       [:.team.team1
-;;        (for [id team1]
-;;          [:span.name (name id)])
-;;        [:span.score score-t1]]
-;;       [:.vs "VS"]
-;;       [:.team.team2
-;;        (for [id team2]
-;;          [:span.name (name id)])
-;;        [:span.score score-t2]]]
-;;      (game-grid own)]))
-
 ;; (defn render-room-list
 ;;   [own]
 ;;   (let [signal (-> own :rum/props :signal)
@@ -165,26 +141,41 @@
 ;;                        :on-click #(signal [:join-room id])} "Join"])]])]
 ;;       ]]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Game Page
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defn render-home
+
+;; (defn render-game
 ;;   [own]
-;;   [:.container.home
-;;    [:div.form-wrapper
-;;     [:div.image-wrapper
-;;      [:img#logo {:src "/images/tavern-logo.png"}]]
-;;     [:input {:ref "nick-input"
-;;              :auto-focus "autofocus"
-;;              :placeholder "What's yar name?"
-;;              :pattern "^[a-zA-Z0-9]+$"}]
-;;     [:a.join-game {:href "#/rooms"
-;;                    :on-click #_(fn [e]
-;;                                  (let [name (util/ref-value own "nick-input")]
-;;                                    (signal [:new-player
-;;                                             (if (or (empty? name) (nil? name))
-;;                                               (str "anonym_" (rand-int 100000))
-;;                                               name)
-;;                                             ])))}
-;;      "To Arms!"]]])
+;;   (let [{:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref :current-game)
+;;         score-t1 0
+;;         score-t2 0
+;;         ]
+;;     [:.container.game
+;;      [:img#logo {:src "/images/tavern-logo.png"}]
+;;      [:.turnprogress
+;;       [:span.time-label "Turn time"]
+;;       [:.time-slider [:.progress {:style {"width" (str (* 100 (/ time-progress total-time)) "%")}}]]
+;;       [:.time-counter time-progress]]
+;;      [:.scoreboard
+;;       [:.team.team1
+;;        (for [id team1]
+;;          [:span.name (name id)])
+;;        [:span.score score-t1]]
+;;       [:.vs "VS"]
+;;       [:.team.team2
+;;        (for [id team2]
+;;          [:span.name (name id)])
+;;        [:span.score score-t2]]]
+;;      (game-grid own)]))
+
+
+;; (def game
+;;   (util/component
+;;    {:render game-render
+;;     :name "game"
+;;     :mixins [rum/reactive]}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Rooms Page
@@ -195,32 +186,47 @@
   ;; When user is not set, just redirect
   ;; to the home page
   (when-not (:player @s/state)
-    (router/go :home))
+    (r/go :home))
   own)
+
+(defn room-item-render
+  [{:keys [id status players] :as room}]
+  (letfn [(on-join-clicked [e]
+            (util/prevent-default e)
+            (rs/emit! (g/join-game room)
+                      (r/navigate :game {:id room})))]
+    (html
+     [:li {:key (str "room-" id)}
+      [:div.room-element
+       [:span.room-element-name (name id)]
+       [:span.room-element-room (str "(" players "/" 2 ")")]
+       (when (= status :pending)
+         [:a.join {:href "#" :on-click on-join-clicked} "Join"])]])))
 
 (defn room-list-render
   [own]
-  (let [state (rum/react s/state)
-        player (:player state)
-        rooms (:rooms state)]
-    (html
-     [:.container.room-list
-      [:img#logo {:src "/images/tavern-logo.png"}]
-     [:.room-list-container
-      [:div.room-list-header
-       [:h2.room-list-title "Available games"]
-       [:a.new-game {:href "#"} "New game!"]]
-      [:a.help {:href "#/help"} "How to play?"]
-      [:ul
-       (for [{:keys [id players status]} rooms]
-         [:li {:key (str "room-" id)}
-          [:div.room-element
-           [:span.room-element-name (name id)]
-           [:span.room-element-room (str "(" players "/" 2 ")")]
-           (when (= status :pending)
-             [:a.join {:href (str "#/game/" (name id))
-                       :on-click #(router/go :join-room id)} "Join"])]])]
-      ]])))
+  (letfn [(on-new-game-clicked [e]
+            (util/prevent-default e)
+            (rs/emit! (g/join-game)))
+          (on-join-clicked [e room]
+            (util/prevent-default e)
+            (rs/emit! (g/join-game room)
+                      (r/navigate :game {:id room})))]
+    (let [state (rum/react s/state)
+          player (:player state)
+          rooms (:rooms state)]
+      (html
+       [:.container.room-list
+        [:img#logo {:src "/images/tavern-logo.png"}]
+        [:.room-list-container
+         [:div.room-list-header
+          [:h2.room-list-title "Available games"]
+          [:a.new-game {:href "#" :on-click on-new-game-clicked} "New game!"]]
+         [:a.help {:href "#/help"} "How to play?"]
+         [:ul
+          (for [id rooms]
+            (let [room (get-in state [:rooms-by-id id])]
+              (room-item-render room)))]]]))))
 
 (def room-list
   (util/component
@@ -272,8 +278,9 @@
             (util/prevent-default e)
             (let [value (str/trim (util/ref-value own "nick-input"))]
               (when-not (str/empty? value)
-                (rs/emit! (g/persist-player value))
-                (router/go :rooms))))]
+                (rs/emit! (g/set-player value)
+                          (g/load-rooms)
+                          (r/navigate :rooms)))))]
     (html
      [:.container.home
       [:div.form-wrapper
@@ -289,7 +296,7 @@
   (util/component
    {:render home-render
     :name "home"
-    :mixins [util/cursored rum/reactive]}))
+    :mixins [rum/reactive]}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Root
@@ -303,14 +310,14 @@
        :home (home)
        :rooms (room-list)
        :help (help)
+       :game  (help)
        nil))))
        ;; :rooms (render-room-list)))))
-       ;; :game  (render-game own)
        ;; :help  (render-help own)
 
 (def root
   (util/component
    {:render root-render
     :name "root"
-    :mixins [util/cursored rum/reactive]}))
+    :mixins [rum/reactive]}))
 

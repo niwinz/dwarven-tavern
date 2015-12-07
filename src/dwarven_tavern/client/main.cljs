@@ -15,7 +15,7 @@
 
 ;; DEBUG
 (rx/on-value s/stream #(println "state:" %))
-(rs/emit! (g/load-rooms))
+;; (rs/emit! (g/load-rooms))
 
 (let [el (dom/getElement "app")]
   (rum/mount (v/root) el))
