@@ -209,26 +209,31 @@
        (when (= status :pending)
          [:a.join {:href "#" :on-click on-join-clicked} "Join"])]])))
 
+;; Declare a specific state vision using lenses
+;; for the room list page.
+(def roomlist-state
+  (as-> (l/select-keys [:rooms :rooms-by-id :player]) $
+    (l/focus-atom $ s/state)))
+
 (defn room-list-render
   [own]
-  (letfn [(on-new-game-clicked [e]
-            (util/prevent-default e)
-            (rs/emit! (g/join-game)))]
-    (let [state (rum/react s/state)
-          player (:player state)
-          rooms (:rooms state)]
-      (html
-       [:.container.room-list
-        [:img#logo {:src "/images/tavern-logo.png"}]
-        [:.room-list-container
-         [:div.room-list-header
-          [:h2.room-list-title "Available games"]
-          [:a.new-game {:href "#" :on-click on-new-game-clicked} "New game!"]]
-         [:a.help {:href "#/help"} "How to play?"]
-         [:ul
-          (for [id rooms]
-            (let [room (get-in state [:rooms-by-id id])]
-              (room-item-render room)))]]]))))
+  (let [state (rum/react roomlist-state)
+        player (:player state)
+        rooms (:rooms state)
+        on-click #(do (util/prevent-default %)
+                      (rs/emit! (g/join-game)))]
+    (html
+     [:.container.room-list
+      [:img#logo {:src "/images/tavern-logo.png"}]
+      [:.room-list-container
+       [:div.room-list-header
+        [:h2.room-list-title "Available games"]
+        [:a.new-game {:href "#" :on-click on-click} "New game!"]]
+       [:a.help {:href "#/help"} "How to play?"]
+       [:ul
+        (for [id rooms]
+          (let [room (get-in state [:rooms-by-id id])]
+            (room-item-render room)))]]])))
 
 (def room-list
   (util/component
@@ -298,7 +303,7 @@
   (util/component
    {:render home-render
     :name "home"
-    :mixins [rum/reactive]}))
+    :mixins [rum/static]}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Root
