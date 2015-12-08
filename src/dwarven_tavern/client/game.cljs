@@ -73,15 +73,16 @@
    (reify
      rs/WatchEvent
      (-apply-watch [_ state]
-       (let [room (keyword room)
+       (let [roomid (keyword room)
              player (:player state)]
-         (->> (p/join-room player room)
+         (->> (p/join-room player roomid)
               (rx/from-promise)
               (rx/map #(get-in % [:data :room]))
               (rx/map (fn [room]
                         (rx/of
                          (load-rooms)
-                         (swap #(assoc % :current room))))))))
+                         (swap #(assoc % :current room))
+                         (r/navigate :game {:id roomid})))))))
 
     IPrintWithWriter
     (-pr-writer [mv writer _]

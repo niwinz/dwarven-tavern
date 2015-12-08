@@ -30,7 +30,6 @@
        (let [loc (merge {:handler name}
                         (when params
                           {:route-params params}))]
-         (println "navigate$-apply-effect" loc)
          (bidi/set-location! +router+ loc))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -47,7 +46,6 @@
 
 (defn- on-navigate
   [data]
-  (println "onnavigate:" data)
   (rs/emit! (update-location data)))
 
 (defonce +router+

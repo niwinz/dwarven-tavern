@@ -10,30 +10,30 @@
             [dwarven-tavern.client.postal :as p]
             [dwarven-tavern.client.util :as util]))
 
-;; (def ^:static sprites
-;;   {:team1  "url(/images/team1.png)"
-;;    :team2  "url(/images/team2.png)"
-;;    :barrel "url(/images/barrel.png)"})
+(def ^:static sprites
+  {:team1  "url(/images/team1.png)"
+   :team2  "url(/images/team2.png)"
+   :barrel "url(/images/barrel.png)"})
 
-;; (def ^:static dwarf-animation
-;;   {:north [{ :x 0  :y 32 :width 33 :height 32}
-;;            { :x 33 :y 32 :width 33 :height 32}
-;;            { :x 66 :y 32 :width 33 :height 32}]
-;;    :east  [{ :x 0  :y 64 :width 33 :height 32}
-;;            { :x 33 :y 64 :width 33 :height 32}
-;;            { :x 66 :y 64 :width 33 :height 32}]
-;;    :south [{ :x 0  :y 0  :width 33 :height 33}
-;;            { :x 33 :y 0  :width 33 :height 32}
-;;            { :x 66 :y 0  :width 33 :height 32}]
-;;    :west  [{ :x 0  :y 96 :width 33 :height 32}
-;;            { :x 33 :y 96 :width 33 :height 32}
-;;            { :x 66 :y 96 :width 33 :height 32}]})
+(def ^:static dwarf-animation
+  {:north [{ :x 0  :y 32 :width 33 :height 32}
+           { :x 33 :y 32 :width 33 :height 32}
+           { :x 66 :y 32 :width 33 :height 32}]
+   :east  [{ :x 0  :y 64 :width 33 :height 32}
+           { :x 33 :y 64 :width 33 :height 32}
+           { :x 66 :y 64 :width 33 :height 32}]
+   :south [{ :x 0  :y 0  :width 33 :height 33}
+           { :x 33 :y 0  :width 33 :height 32}
+           { :x 66 :y 0  :width 33 :height 32}]
+   :west  [{ :x 0  :y 96 :width 33 :height 32}
+           { :x 33 :y 96 :width 33 :height 32}
+           { :x 66 :y 96 :width 33 :height 32}]})
 
-;; (def ^:static barrel-animation
-;;   {:north [{ :x 32 :y 0 :width 32 :height 32}]
-;;    :east  [{ :x 0  :y 0 :width 32 :height 32}]
-;;    :south [{ :x 32 :y 0 :width 32 :height 32}]
-;;    :west  [{ :x 0  :y 0 :width 32 :height 32}]})
+(def ^:static barrel-animation
+  {:north [{ :x 32 :y 0 :width 32 :height 32}]
+   :east  [{ :x 0  :y 0 :width 32 :height 32}]
+   :south [{ :x 32 :y 0 :width 32 :height 32}]
+   :west  [{ :x 0  :y 0 :width 32 :height 32}]})
 
 ;; (defonce heartbeat (atom 0))
 ;; (defonce interval-timer
@@ -146,48 +146,125 @@
 ;; Game Page
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defn render-game
-;;   [own]
-;;   (let [state (rum/react s/state)
+(defonce heartbeat (atom 0))
+(defonce interval-timer
+  (js/setInterval (fn [] (swap! heartbeat inc)) 200))
 
+(defn render-barrel
+  []
+  (let [sprite-url (:barrel sprites)
+        sprite (-> barrel-animation :east first)
+        {:keys [x y width height]} sprite]
+    (html
+     [:.barrel {:style {:background-image sprite-url
+                        :width (str width "px")
+                        :height (str height "px")
+                        :background-position (str x "px " y "px")
+                        :transform "rotateZ(180deg)"}}])))
 
+(defn render-dwarf
+  [team animation idx]
+  (let [sprite-url (team sprites)
+        sprite (-> dwarf-animation animation (nth idx))
+        {:keys [x y width height]} sprite]
+    (html
+     [:.dwarf.team1 {:style {:background-image sprite-url
+                             :width (str width "px")
+                             :height (str height "px")
+                             :background-position (str x "px " y "px")}}])))
 
-;; {:keys [total-time time-progress team1 team2]} (-> own :rum/props :state deref :current-game)
-;;         total-time 0
-;;         time-progress 0
+(defn- calc-row-style
+  [row room]
+  (let [height (:height room)]
+    (condp = row
+      0            {:backgroundColor "rgba(255, 0, 0, 0.22)"}
+      (- height 1) {:backgroundColor "rgba(255, 255, 0, 0.22)"}
+      {})))
 
-;;         score-t1 0
-;;         score-t2 0
-;;         ]
-;;     [:.container.game
-;;      [:img#logo {:src "/images/tavern-logo.png"}]
-;;      [:.turnprogress
-;;       [:span.time-label "Turn time"]
-;;       [:.time-slider [:.progress {:style {"width" (str (* 100 (/ time-progress total-time)) "%")}}]]
-;;       [:.time-counter time-progress]]
-;;      [:.scoreboard
-;;       [:.team.team1
-;;        (for [id team1]
-;;          [:span.name (name id)])
-;;        [:span.score score-t1]]
-;;       [:.vs "VS"]
-;;       [:.team.team2
-;;        (for [id team2]
-;;          [:span.name (name id)])
-;;        [:span.score score-t2]]]
-;;      (game-grid own)]))
+(defn render-game-grid
+  [own]
+  (let [room @(get-in own [:rum/props :room])
+        width (:width room)
+        height (:height room)
+        players (:players room)
+        barrel (get-in room [:barrel :pos])]
+    (html
+     [:table.grid {:tab-index 0 :on-key-down (constantly nil)}
+      [:tbody
+       (for [row (range 0 height)]
+         [:tr {:style (calc-row-style row room)}
+          (for [column (range 0 width)]
+            [:td {:key column}
+             (for [{:keys [id pos team dir]} (vals players)]
+               (when (and (= row (first pos)) (= column (second pos)))
+                 (rum/with-key (render-dwarf team dir 0)
+                   (str id))))
+             (when (and (= row (second barrel)) (= column (first barrel)))
+               (render-barrel))])])]])))
 
-;; (def game
-;;   (util/component
-;;    {:render game-render
-;;     :name "game"
-;;     :mixins [rum/reactive]}))
+(defn- game-box-render
+  [own]
+  (let [player @(get-in own [:rum/props :player])
+        room @(get-in own [:rum/props :room])
+        team1 (:team1 room)
+        team2 (:team2 room)
+        pwidth 56]
+    (html
+     [:.container.game
+      [:img#logo {:src "/images/tavern-logo.png"}]
+      [:.turnprogress
+       [:span.time-label "Turn time"]
+       [:.time-slider
+        [:.progress {:style {"width" (str pwidth)}}]
+        [:.time-counter "100"]]]
+      [:.scoreboard
+       [:.team.team1
+        (for [id team1]
+          [:span.name {:key (str id)} (name id)])
+        [:span.score 0]]
+       [:.vs "VS"]
+       [:.team.team2
+        (for [id team2]
+          [:span.name {:key (str id)} (name id)])
+        [:span.score 0]]]
+      (render-game-grid own)])))
+
+(def game-state
+  (as-> (l/select-keys [:current :player]) $
+    (l/focus-atom $ s/state)))
+
+(def game-box
+  (util/component
+   {:render game-box-render
+    :name "game-box"
+    :mixins [util/cursored]}))
+
+(defn- game-render
+  [own]
+  (let [state (rum/react s/state)]
+    (if-not (:player state)
+      (r/go :home))
+    (when (:current state)
+      (game-box {:player (l/focus-atom (l/in [:player]) s/state)
+                 :room (l/focus-atom (l/in [:current]) s/state)}))))
+
+(def game
+  (util/component
+   {:render game-render
+    :name "game"
+    :mixins [rum/reactive]}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Rooms Page
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn room-list-init
+;; Declare a specific state vision using lenses
+;; for the room list page.
+(def roomlist-state
+  (as-> (l/select-keys [:rooms :rooms-by-id :player]) $
+    (l/focus-atom $ s/state)))
+
+(defn- room-list-init
   [own]
   ;; When user is not set, just redirect
   ;; to the home page
@@ -195,12 +272,11 @@
     (r/go :home))
   own)
 
-(defn room-item-render
+(defn- room-item-render
   [{:keys [id status players] :as room}]
   (letfn [(on-join-clicked [e]
             (util/prevent-default e)
-            (rs/emit! (g/join-game id)
-                      (r/navigate :game {:id id})))]
+            (rs/emit! (g/join-game id)))]
     (html
      [:li {:key (str "room-" id)}
       [:div.room-element
@@ -209,13 +285,7 @@
        (when (= status :pending)
          [:a.join {:href "#" :on-click on-join-clicked} "Join"])]])))
 
-;; Declare a specific state vision using lenses
-;; for the room list page.
-(def roomlist-state
-  (as-> (l/select-keys [:rooms :rooms-by-id :player]) $
-    (l/focus-atom $ s/state)))
-
-(defn room-list-render
+(defn- room-list-render
   [own]
   (let [state (rum/react roomlist-state)
         player (:player state)
@@ -246,7 +316,7 @@
 ;; Help Page
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn help-render
+(defn- help-render
   [_]
   (html
    [:.container.help
@@ -279,7 +349,7 @@
 ;; Home Page
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn home-render
+(defn- home-render
   [own]
   (letfn [(on-click [e]
             (util/prevent-default e)
@@ -313,7 +383,7 @@
   (as-> (l/select-keys [:location :location-params]) $
     (l/focus-atom $ s/state)))
 
-(defn root-render
+(defn- root-render
   [_]
   ;; Only reacts on url changes thans to the
   ;; lenses focused main state.
@@ -323,7 +393,7 @@
        :home (home)
        :rooms (room-list)
        :help (help)
-       :game  (help)
+       :game  (game)
        nil))))
 
 (def root
