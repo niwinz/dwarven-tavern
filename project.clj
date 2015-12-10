@@ -21,6 +21,6 @@
                  [rum "0.6.0"]
                  [figwheel-sidecar "0.5.0-2" :scope "test"]
                  [bidi "1.21.1"]]
-  ;; :main ^:skip-aot dwarven-tavern.server
+  ;; :main ^:skip-aot dwarven-tavern.server.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

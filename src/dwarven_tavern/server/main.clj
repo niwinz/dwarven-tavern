@@ -1,4 +1,4 @@
-(ns dwarven-tavern.server
+(ns dwarven-tavern.server.main
   (:require [com.stuartsierra.component :as component]
             [catacumba.core :as ct]
             [catacumba.components :as ctc]
